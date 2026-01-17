@@ -1,0 +1,8 @@
+{
+  "name": "Teacher AI FINAL",
+  "description": "A premium, modern, and powerful educational platform featuring AI-powered chat, homework assistance, professional writing tools, web builder, and file generation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
