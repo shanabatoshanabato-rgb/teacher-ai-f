@@ -1,19 +1,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, Loader2, Sparkles, User, Bot, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Volume2, Loader2, Sparkles, User, Bot, VolumeX, Ghost } from 'lucide-react';
 import { askVoiceTeacher, generateSpeech } from '../services/aiService';
 
 const VoiceView: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isVoiceOnly, setIsVoiceOnly] = useState(false); // STS Mode Toggle
   const [transcript, setTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [voice, setVoice] = useState<'Adam' | 'Sara'>('Adam');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Use Web Speech API for STT
   const recognitionRef = useRef<any>(null);
+  const isAr = document.documentElement.lang === 'ar';
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -21,22 +21,14 @@ const VoiceView: React.FC = () => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US'; 
-
+      
       recognitionRef.current.onresult = (event: any) => {
         const text = event.results[0][0].transcript;
         setTranscript(text);
         handleVoiceInput(text);
       };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech Recognition Error:", event.error);
-        setIsListening(false);
-      };
+      recognitionRef.current.onend = () => setIsListening(false);
     }
   }, []);
 
@@ -48,7 +40,8 @@ const VoiceView: React.FC = () => {
       setAiResponse('');
       setAudioUrl(null);
       setIsListening(true);
-      recognitionRef.current.lang = /[\u0600-\u06FF]/.test(transcript) ? 'ar-SA' : 'en-US';
+      // Auto-detect lang based on system setting or previous input
+      recognitionRef.current.lang = isAr ? 'ar-SA' : 'en-US';
       recognitionRef.current?.start();
     }
   };
@@ -56,15 +49,11 @@ const VoiceView: React.FC = () => {
   const handleVoiceInput = async (text: string) => {
     setIsProcessing(true);
     try {
-      // Use the advanced voice-optimized orchestrator
       const response = await askVoiceTeacher(text);
       setAiResponse(response);
       
-      // Generate TTS with ElevenLabs
       const url = await generateSpeech(response, voice);
-      if (url) {
-        setAudioUrl(url);
-      }
+      if (url) setAudioUrl(url);
     } catch (error) {
       console.error("Voice processing error:", error);
     } finally {
@@ -79,106 +68,101 @@ const VoiceView: React.FC = () => {
   }, [audioUrl]);
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-160px)] flex flex-col items-center justify-center p-8">
-      {/* Voice Selection */}
-      <div className="absolute top-32 right-10 flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-160px)] flex flex-col items-center justify-center p-8 relative">
+      
+      {/* Voice Controls */}
+      <div className="absolute top-10 right-0 left-0 flex justify-center gap-4">
+        <div className="flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
+          <button onClick={() => setVoice('Adam')} className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${voice === 'Adam' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ADAM</button>
+          <button onClick={() => setVoice('Sara')} className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${voice === 'Sara' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>SARA</button>
+        </div>
+        
         <button 
-          onClick={() => setVoice('Adam')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${voice === 'Adam' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+          onClick={() => setIsVoiceOnly(!isVoiceOnly)} 
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl border transition-all text-[10px] font-black tracking-widest ${isVoiceOnly ? 'bg-purple-600 border-purple-400 text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}
         >
-          ADAM (M)
-        </button>
-        <button 
-          onClick={() => setVoice('Sara')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${voice === 'Sara' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
-        >
-          SARA (F)
+          {isVoiceOnly ? <Ghost className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          {isAr ? (isVoiceOnly ? 'وضع التحدث المباشر' : 'عرض النص') : (isVoiceOnly ? 'STS MODE' : 'SHOW TEXT')}
         </button>
       </div>
 
-      {/* Main Visualizer */}
-      <div className="relative mb-20">
-        <div className={`absolute inset-0 bg-indigo-600 blur-[100px] opacity-20 transition-all duration-1000 ${isListening ? 'scale-150' : 'scale-100'}`}></div>
+      {/* Neural Core Visualizer */}
+      <div className="relative mb-20 group">
+        <div className={`absolute inset-0 bg-blue-600 blur-[120px] opacity-20 transition-all duration-1000 ${isListening || isProcessing ? 'scale-150 opacity-40' : 'scale-100'}`}></div>
         
         <button 
           onClick={toggleListening}
           disabled={isProcessing}
           className={`
-            relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl
+            relative w-56 h-56 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl
             ${isListening 
-              ? 'bg-red-500 scale-110 shadow-red-500/40 ring-8 ring-red-500/10' 
+              ? 'bg-red-500 scale-110 shadow-red-500/40' 
               : isProcessing 
-                ? 'bg-slate-800' 
-                : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/40 ring-8 ring-indigo-500/10'
+                ? 'bg-slate-900 border-2 border-blue-500/50' 
+                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/40'
             }
           `}
         >
           {isProcessing ? (
-            <Loader2 className="w-16 h-16 text-indigo-400 animate-spin" />
+            <div className="relative">
+              <Loader2 className="w-20 h-20 text-blue-400 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-blue-300 animate-pulse" />
+              </div>
+            </div>
           ) : isListening ? (
-            <MicOff className="w-16 h-16 text-white" />
+            <MicOff className="w-20 h-20 text-white animate-pulse" />
           ) : (
-            <Mic className="w-16 h-16 text-white" />
+            <Mic className="w-20 h-20 text-white group-hover:scale-110 transition-transform" />
           )}
 
           {isListening && (
-            <>
-              <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping opacity-20"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping opacity-10 [animation-delay:0.5s]"></div>
-            </>
+            <div className="absolute inset-0 rounded-full border-8 border-red-500/20 animate-ping"></div>
           )}
         </button>
       </div>
 
-      {/* Interaction Feedback */}
-      <div className="w-full space-y-8 text-center max-w-2xl">
-        <div className="space-y-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500">
-            {isListening ? 'Listening to your voice...' : isProcessing ? 'Teacher AI is reasoning...' : 'Tap to start conversation'}
-          </p>
-          
+      {/* Communication Feed */}
+      {!isVoiceOnly && (
+        <div className="w-full space-y-6 text-center max-w-2xl">
           {transcript && (
-            <div className="flex items-center justify-center gap-4 bg-white/5 border border-white/5 p-6 rounded-[2rem] animate-in fade-in slide-in-from-bottom-2">
-              <User className="w-5 h-5 text-slate-500 shrink-0" />
-              <p className="text-slate-300 font-medium leading-relaxed italic" dir="auto">"{transcript}"</p>
+            <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] animate-in fade-in slide-in-from-bottom-2">
+              <p className="text-slate-400 font-medium italic" dir="auto">"{transcript}"</p>
             </div>
           )}
 
           {aiResponse && (
-            <div className="flex items-center justify-center gap-4 bg-indigo-600/10 border border-indigo-500/20 p-8 rounded-[2.5rem] animate-in fade-in slide-in-from-bottom-4">
-              <Bot className="w-6 h-6 text-indigo-400 shrink-0" />
-              <div className="space-y-3">
-                <p className="text-white text-lg font-bold leading-relaxed" dir="auto">{aiResponse}</p>
-                {audioUrl && (
-                  <div className="flex items-center justify-center gap-2 text-indigo-400">
-                    <Volume2 className="w-4 h-4 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Speaking...</span>
-                  </div>
-                )}
-              </div>
+            <div className="p-8 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] animate-in fade-in slide-in-from-bottom-4">
+              <p className="text-white text-xl font-bold leading-relaxed" dir="auto">{aiResponse}</p>
+              {audioUrl && (
+                <div className="mt-4 flex items-center justify-center gap-2 text-blue-400">
+                  <Volume2 className="w-4 h-4 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{isAr ? 'المعلم يتحدث...' : 'Teacher is speaking...'}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </div>
+      )}
 
-      {audioUrl && <audio ref={audioRef} src={audioUrl} className="hidden" onEnded={() => setAudioUrl(null)} />}
-
-      {!transcript && !aiResponse && !isListening && (
-        <div className="mt-12 flex gap-8">
-          <div className="flex flex-col items-center gap-2 opacity-40">
-            <Volume2 className="w-5 h-5" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Neural Audio</span>
-          </div>
-          <div className="flex flex-col items-center gap-2 opacity-40">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Real-time Reasoning</span>
-          </div>
-          <div className="flex flex-col items-center gap-2 opacity-40">
-            <VolumeX className="w-5 h-5" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Clear Voice</span>
-          </div>
+      {isVoiceOnly && isProcessing && (
+        <div className="mt-10 text-center animate-pulse">
+          <p className="text-blue-500 font-black tracking-[0.5em] uppercase text-xs">Processing Voice Link...</p>
         </div>
       )}
+
+      {audioUrl && <audio ref={audioRef} src={audioUrl} className="hidden" onEnded={() => setAudioUrl(null)} />}
+      
+      <div className="mt-12 flex gap-10 opacity-30">
+        <div className="flex flex-col items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          <span className="text-[9px] font-black uppercase tracking-widest">Neural STS</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <Volume2 className="w-5 h-5" />
+          <span className="text-[9px] font-black uppercase tracking-widest">ElevenLabs Core</span>
+        </div>
+      </div>
     </div>
   );
 };
