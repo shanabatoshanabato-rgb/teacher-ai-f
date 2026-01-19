@@ -16,33 +16,53 @@
 // Declare Puter global from script tag
 declare const puter: any;
 
-// Helper to safely access env vars (Vite, Create React App, Next.js, or Standard)
-const getEnv = (key: string) => {
-  // 1. Vite Support
-  // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[`VITE_${key}`]) {
-    // @ts-ignore
-    return import.meta.env[`VITE_${key}`];
-  }
+// Helper to safely access env vars explicitly (Static access is required for bundlers)
+const getEnvVar = (key: string) => {
+  // We cannot use dynamic access like process.env[key] reliably in frontend builds.
+  // We must check specific variations explicitly.
   
-  // 2. Process.env Support (Vercel, CRA, Next.js)
+  // VITE (import.meta.env)
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    const viteKey = import.meta.env[`VITE_${key}`] || import.meta.env[key];
+    if (viteKey) return viteKey;
+  }
+
+  // PROCESS.ENV (React App, Next.js)
   // @ts-ignore
   if (typeof process !== 'undefined' && process.env) {
-    // Priority: REACT_APP_ (CRA), NEXT_PUBLIC_ (Next.js/Vercel), Raw Key (Node/Custom)
-    // @ts-ignore
-    return process.env[`REACT_APP_${key}`] || process.env[`NEXT_PUBLIC_${key}`] || process.env[key];
+    // Explicit checks for common prefixes
+    switch (key) {
+      case 'OPENAI_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+      case 'GROQ_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY;
+      case 'ELEVEN_LABS_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_ELEVEN_LABS_API_KEY || process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || process.env.VITE_ELEVEN_LABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;
+      case 'SERPAPI_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_SERPAPI_API_KEY || process.env.NEXT_PUBLIC_SERPAPI_API_KEY || process.env.VITE_SERPAPI_API_KEY || process.env.SERPAPI_API_KEY;
+      case 'NANO_BANANA_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_NANO_BANANA_KEY || process.env.NEXT_PUBLIC_NANO_BANANA_KEY || process.env.VITE_NANO_BANANA_KEY || process.env.NANO_BANANA_KEY;
+      default:
+        return '';
+    }
   }
-  
   return '';
 };
 
-// API CONFIGURATION (with whitespace protection)
+// API CONFIGURATION
 const API_KEYS = {
-  OPENAI: getEnv('OPENAI_API_KEY')?.trim(),
-  GROQ: getEnv('GROQ_API_KEY')?.trim(),
-  ELEVEN_LABS: getEnv('ELEVEN_LABS_API_KEY')?.trim(),
-  SERPAPI: getEnv('SERPAPI_API_KEY')?.trim(),
-  NANO_BANANA: getEnv('NANO_BANANA_KEY')?.trim()
+  OPENAI: getEnvVar('OPENAI_API_KEY')?.trim(),
+  GROQ: getEnvVar('GROQ_API_KEY')?.trim(),
+  ELEVEN_LABS: getEnvVar('ELEVEN_LABS_API_KEY')?.trim(),
+  SERPAPI: getEnvVar('SERPAPI_API_KEY')?.trim(),
+  NANO_BANANA: getEnvVar('NANO_BANANA_KEY')?.trim()
 };
 
 const isAr = () => document.documentElement.lang === 'ar';

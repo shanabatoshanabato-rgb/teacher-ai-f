@@ -16,18 +16,40 @@ import {
 declare const puter: any;
 
 // Helper to safely access env vars (Vite or Standard)
+// Duplicated here for component independence but uses static checks
 const getEnv = (key: string) => {
+  // VITE
   // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[`VITE_${key}`]) {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
     // @ts-ignore
-    return import.meta.env[`VITE_${key}`];
+    const viteKey = import.meta.env[`VITE_${key}`] || import.meta.env[key];
+    if (viteKey) return viteKey;
   }
+
+  // PROCESS.ENV (React App, Next.js)
   // @ts-ignore
   if (typeof process !== 'undefined' && process.env) {
-    // @ts-ignore
-    return process.env[`REACT_APP_${key}`] || process.env[`NEXT_PUBLIC_${key}`] || process.env[key];
+    switch (key) {
+      case 'OPENAI_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+      case 'GROQ_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY;
+      case 'ELEVEN_LABS_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_ELEVEN_LABS_API_KEY || process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || process.env.VITE_ELEVEN_LABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;
+      case 'SERPAPI_API_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_SERPAPI_API_KEY || process.env.NEXT_PUBLIC_SERPAPI_API_KEY || process.env.VITE_SERPAPI_API_KEY || process.env.SERPAPI_API_KEY;
+      case 'NANO_BANANA_KEY':
+        // @ts-ignore
+        return process.env.REACT_APP_NANO_BANANA_KEY || process.env.NEXT_PUBLIC_NANO_BANANA_KEY || process.env.VITE_NANO_BANANA_KEY || process.env.NANO_BANANA_KEY;
+      default:
+        return '';
+    }
   }
-  return null;
+  return '';
 };
 
 type TestStatus = 'idle' | 'testing' | 'success' | 'error' | 'missing';
@@ -107,7 +129,7 @@ const SettingsView: React.FC = () => {
     infra: 'نظام Teacher AI',
     lang: 'لغة الواجهة',
     ready: 'النظام جاهز',
-    desc: 'إدارة مفاتيح API (Environment Variables) في Vercel.',
+    desc: 'إدارة مفاتيح API (Environment Variables) في Vercel. يرجى إضافة "REACT_APP_" قبل اسم المفتاح في Vercel.',
     keys: 'فحص المفاتيح',
     missing: 'مفقود',
     active: 'متصل',
@@ -117,7 +139,7 @@ const SettingsView: React.FC = () => {
     infra: 'Teacher AI System',
     lang: 'Interface Language',
     ready: 'System Ready',
-    desc: 'Manage API keys via Vercel Environment Variables.',
+    desc: 'Manage API keys via Vercel Environment Variables. Please prepend "REACT_APP_" to keys in Vercel.',
     keys: 'API Key Diagnostics',
     missing: 'MISSING KEY',
     active: 'ACTIVE',
