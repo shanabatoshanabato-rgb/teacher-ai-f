@@ -10,7 +10,8 @@ import {
   Layers,
   Type,
   Image as ImageIcon,
-  FileBox
+  FileBox,
+  Globe
 } from 'lucide-react';
 import { generatePPT, generateDOC } from '../services/fileService';
 
@@ -23,7 +24,7 @@ const FilesView: React.FC = () => {
   
   const [numSlides, setNumSlides] = useState(10);
   const [wordCount, setWordCount] = useState(1500);
-  const [includeImages, setIncludeImages] = useState(true);
+  const [includeWebData, setIncludeWebData] = useState(false);
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -32,12 +33,12 @@ const FilesView: React.FC = () => {
     
     try {
       if (fileType === 'ppt') {
-        await generatePPT(topic, numSlides, includeImages);
+        await generatePPT(topic, numSlides, includeWebData);
       } else {
-        await generateDOC(topic, wordCount, includeImages);
+        await generateDOC(topic, wordCount, includeWebData);
       }
-    } catch (e) {
-      setError(isAr ? 'حدث خطأ أثناء إنشاء الملف. تأكد من اتصال Puter.' : 'Error generating file. Check Puter connection.');
+    } catch (e: any) {
+      setError(e.message || (isAr ? 'حدث خطأ أثناء إنشاء الملف.' : 'Error generating file.'));
     } finally {
       setIsGenerating(false);
     }
@@ -50,15 +51,15 @@ const FilesView: React.FC = () => {
           <div className="p-3 bg-blue-600/20 rounded-2xl">
             <FileBox className="text-blue-400 w-8 h-8" />
           </div>
-          {isAr ? 'مصنع الملفات الذكي' : 'Puter Document Factory'}
+          {isAr ? 'مصنع ملفات المعلم' : 'Teacher Doc Factory'}
         </h2>
-        <p className="text-slate-400 text-lg font-medium">{isAr ? 'أنشئ عروض تقديمية وأبحاث احترافية عبر محرك Puter AI.' : 'Create premium files using Puter AI core engine.'}</p>
+        <p className="text-slate-400 text-lg font-medium">{isAr ? 'أنشئ عروض تقديمية وأبحاث احترافية بذكاء المعلم الآلي.' : 'Create premium files using Neural AI core brain.'}</p>
       </div>
 
       <div className="bg-[#111827]/60 border border-white/10 rounded-[2.5rem] p-10 shadow-2xl backdrop-blur-xl space-y-10">
         
         <div className="space-y-4">
-          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '1. موضوع البحث' : '1. Research Subject'}</label>
+          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '1. الموضوع' : '1. Subject'}</label>
           <div className="relative group">
             <input
               type="text"
@@ -73,7 +74,7 @@ const FilesView: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '2. نوع الملف' : '2. Select Format'}</label>
+          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '2. التنسيق' : '2. Format'}</label>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setFileType('ppt')}
@@ -93,35 +94,38 @@ const FilesView: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '3. إعدادات المحرك' : '3. Neural Parameters'}</label>
+          <label className={`text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? '3. المعايير' : '3. Logic Parameters'}</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {fileType === 'ppt' ? (
               <div className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-blue-400">
                     <Layers className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">{isAr ? 'عدد الشرائح' : 'Slide Count'}</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider">{isAr ? 'الشرائح' : 'Slides'}</span>
                   </div>
                   <span className="font-black text-white text-lg">{numSlides}</span>
                 </div>
-                <input type="range" min="3" max="50" value={numSlides} onChange={(e) => setNumSlides(parseInt(e.target.value))} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                <input type="range" min="3" max="30" value={numSlides} onChange={(e) => setNumSlides(parseInt(e.target.value))} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" />
               </div>
             ) : (
               <div className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-blue-400">
                     <Type className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">{isAr ? 'عدد الكلمات' : 'Word Limit'}</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider">{isAr ? 'الكلمات' : 'Words'}</span>
                   </div>
                   <span className="font-black text-white text-lg">{wordCount}</span>
                 </div>
-                <input type="range" min="100" max="4000" step="100" value={wordCount} onChange={(e) => setWordCount(parseInt(e.target.value))} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                <input type="range" min="100" max="3000" step="100" value={wordCount} onChange={(e) => setWordCount(parseInt(e.target.value))} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" />
               </div>
             )}
 
-            <div onClick={() => setIncludeImages(!includeImages)} className={`p-6 rounded-3xl border cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${includeImages ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-xl' : 'bg-white/5 border-white/5 text-slate-500 opacity-60'}`}>
-              <ImageIcon className="w-8 h-8" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{isAr ? 'تضمين صور ذكية' : 'Include AI Visuals'}</span>
+            <div 
+              onClick={() => setIncludeWebData(!includeWebData)} 
+              className={`p-6 rounded-3xl border cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${includeWebData ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-xl' : 'bg-white/5 border-white/5 text-slate-500 opacity-60'}`}
+            >
+              <Globe className="w-8 h-8" />
+              <span className="text-[10px] font-black uppercase tracking-widest">{isAr ? 'تضمين بيانات من الويب' : 'Include Web Data'}</span>
             </div>
           </div>
         </div>
@@ -134,8 +138,8 @@ const FilesView: React.FC = () => {
           >
             {isGenerating ? <Loader2 className="w-8 h-8 animate-spin" /> : <Download className="w-8 h-8" />}
             <div className={`flex flex-col items-start ${isAr ? 'text-right' : 'text-left'}`}>
-              <span className="text-xl leading-none uppercase tracking-tighter">{isAr ? 'توليد الملف الآن' : `Generate ${fileType.toUpperCase()}`}</span>
-              <span className="text-[10px] opacity-70 uppercase tracking-[0.3em] font-medium">{isAr ? 'استدعاء محرك Puter AI' : 'Invoking Puter AI Pipeline'}</span>
+              <span className="text-xl leading-none uppercase tracking-tighter">{isAr ? 'إنشاء الملف الآن' : `Generate ${fileType.toUpperCase()}`}</span>
+              <span className="text-[10px] opacity-70 uppercase tracking-[0.3em] font-medium">{isAr ? 'تفعيل المحرك العصبي' : 'Activating Neural Engine'}</span>
             </div>
           </button>
         </div>

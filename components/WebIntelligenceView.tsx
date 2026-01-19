@@ -4,6 +4,7 @@ import { Search, Globe, Link as LinkIcon, Image as ImageIcon, Loader2, Sparkles,
 import { askWebIntelligence } from '../services/aiService';
 
 const WebIntelligenceView: React.FC = () => {
+  const isAr = document.documentElement.lang === 'ar';
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ text: string, images: any[], links: any[] } | null>(null);
@@ -22,7 +23,7 @@ const WebIntelligenceView: React.FC = () => {
     }
   };
 
-  const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
+  const isArabicInput = (text: string) => /[\u0600-\u06FF]/.test(text);
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 animate-in fade-in duration-700">
@@ -32,16 +33,16 @@ const WebIntelligenceView: React.FC = () => {
           <div className="p-3 bg-blue-600/20 rounded-2xl">
             <Globe className="w-8 h-8 text-blue-400" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase">Web Intelligence.</h1>
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase">{isAr ? 'ذكاء الويب / البحث العميق' : 'Web Intelligence.'}</h1>
         </div>
-        <p className="text-slate-500 font-medium text-sm md:text-lg">Fact-based reasoning powered by real-time web discovery.</p>
+        <p className="text-slate-500 font-medium text-sm md:text-lg">{isAr ? 'استنتاجات واقعية مبنية على بحث لحظي واكتشاف الويب.' : 'Fact-based reasoning powered by real-time web discovery.'}</p>
       </div>
 
       {/* Search Bar */}
       <div className="relative max-w-3xl mx-auto group">
         <div className="absolute inset-0 bg-blue-600 blur-[40px] opacity-10 group-focus-within:opacity-20 transition-opacity"></div>
-        <div className="relative flex items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-2 transition-all hover:border-white/20">
-          <div className="pl-6 text-slate-500">
+        <div className={`relative flex items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-2 transition-all hover:border-white/20 ${isAr ? 'flex-row-reverse' : ''}`}>
+          <div className={`${isAr ? 'pr-6' : 'pl-6'} text-slate-500`}>
             <Search className="w-6 h-6" />
           </div>
           <input
@@ -49,9 +50,9 @@ const WebIntelligenceView: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder={isArabic(query) ? "اسأل عن أي معلومة حديثة أو واقعية..." : "Ask about any up-to-date or factual info..."}
-            className={`flex-1 bg-transparent py-4 px-4 focus:outline-none text-lg text-white placeholder:text-slate-700 ${isArabic(query) ? 'text-right' : 'text-left'}`}
-            dir={isArabic(query) ? 'rtl' : 'ltr'}
+            placeholder={isAr ? "اسأل عن أي معلومة حديثة أو واقعية..." : "Ask about any up-to-date or factual info..."}
+            className={`flex-1 bg-transparent py-4 px-4 focus:outline-none text-lg text-white placeholder:text-slate-700 ${isAr ? 'text-right' : 'text-left'}`}
+            dir={isAr ? 'rtl' : 'ltr'}
           />
           <button
             onClick={handleSearch}
@@ -71,16 +72,16 @@ const WebIntelligenceView: React.FC = () => {
           <div className="bg-[#111827]/60 border border-white/10 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl shadow-2xl overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] -z-10"></div>
             
-            <div className="flex items-center gap-3 mb-8 text-blue-400">
+            <div className={`flex items-center gap-3 mb-8 text-blue-400 ${isAr ? 'flex-row-reverse' : ''}`}>
               <div className="p-2 bg-blue-600/20 rounded-lg">
                 <BookOpen className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Neural Synthesis</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{isAr ? 'التوليف العصبي' : 'Neural Synthesis'}</span>
             </div>
 
             <div 
-              className={`prose prose-invert max-w-none text-slate-100 text-lg md:text-xl leading-relaxed whitespace-pre-wrap ${isArabic(result.text) ? 'text-right font-arabic' : 'text-left'}`}
-              dir={isArabic(result.text) ? 'rtl' : 'ltr'}
+              className={`prose prose-invert max-w-none text-slate-100 text-lg md:text-xl leading-relaxed whitespace-pre-wrap ${isAr ? 'text-right font-arabic' : 'text-left'}`}
+              dir={isAr ? 'rtl' : 'ltr'}
             >
               {result.text}
             </div>
@@ -92,16 +93,16 @@ const WebIntelligenceView: React.FC = () => {
             {/* Visual Context */}
             {result.images.length > 0 && (
               <div className="lg:col-span-7 space-y-4">
-                <div className="flex items-center gap-3 px-4">
+                <div className={`flex items-center gap-3 px-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                   <ImageIcon className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Visual Evidence</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{isAr ? 'أدلة بصرية' : 'Visual Evidence'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {result.images.map((img, i) => (
                     <div key={i} className="group relative aspect-video bg-white/5 rounded-3xl overflow-hidden border border-white/5 hover:border-blue-500/40 transition-all shadow-lg">
                       <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                        <p className="text-[10px] text-white font-bold truncate">{img.title}</p>
+                        <p className={`text-[10px] text-white font-bold truncate ${isAr ? 'text-right w-full' : ''}`}>{img.title}</p>
                       </div>
                     </div>
                   ))}
@@ -112,9 +113,9 @@ const WebIntelligenceView: React.FC = () => {
             {/* Reference Sources */}
             {result.links.length > 0 && (
               <div className={`${result.images.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-4`}>
-                <div className="flex items-center gap-3 px-4">
+                <div className={`flex items-center gap-3 px-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                   <LinkIcon className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Academic Sources</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{isAr ? 'مصادر أكاديمية' : 'Academic Sources'}</span>
                 </div>
                 <div className="flex flex-col gap-3">
                   {result.links.map((link, i) => (
@@ -125,11 +126,11 @@ const WebIntelligenceView: React.FC = () => {
                       rel="noopener noreferrer"
                       className="flex flex-col gap-2 p-5 bg-[#111827]/40 border border-white/5 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all group"
                     >
-                      <div className="flex items-start justify-between">
-                        <h4 className="text-white font-bold text-xs line-clamp-1 group-hover:text-blue-400 transition-colors">{link.title}</h4>
-                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                      <div className={`flex items-start justify-between ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <h4 className={`text-white font-bold text-xs line-clamp-1 group-hover:text-blue-400 transition-colors ${isAr ? 'text-right' : ''}`}>{link.title}</h4>
+                        <ArrowUpRight className={`w-3.5 h-3.5 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0 ${isAr ? 'rotate-180' : ''}`} />
                       </div>
-                      <p className="text-[9px] text-slate-500 line-clamp-2 leading-relaxed font-medium">{link.snippet}</p>
+                      <p className={`text-[9px] text-slate-500 line-clamp-2 leading-relaxed font-medium ${isAr ? 'text-right' : ''}`}>{link.snippet}</p>
                     </a>
                   ))}
                 </div>
@@ -151,10 +152,10 @@ const WebIntelligenceView: React.FC = () => {
             </div>
           </div>
           <div className="text-center space-y-3">
-            <h3 className="text-2xl font-black text-white tracking-tight">Teacher AI Intelligence</h3>
+            <h3 className="text-2xl font-black text-white tracking-tight">{isAr ? 'ذكاء المعلم الآلي' : 'Teacher AI Intelligence'}</h3>
             <div className="flex flex-col items-center gap-1">
-              <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.4em] animate-pulse">Deep Web Analysis</span>
-              <span className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">Synthesizing factual patterns</span>
+              <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.4em] animate-pulse">{isAr ? 'تحليل الويب العميق' : 'Deep Web Analysis'}</span>
+              <span className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">{isAr ? 'تجميع الأنماط الواقعية' : 'Synthesizing factual patterns'}</span>
             </div>
           </div>
         </div>

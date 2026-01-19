@@ -26,14 +26,14 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const isAr = document.documentElement.lang === 'ar';
 
   const navItems = [
-    { id: 'chat', label: isAr ? 'المحادثة' : 'Chat', icon: MessageSquare },
-    { id: 'web-intelligence', label: isAr ? 'ذكاء الويب' : 'Web Intl', icon: Globe },
+    { id: 'chat', label: isAr ? 'المعلم (Teacher AI)' : 'Teacher AI', icon: MessageSquare },
     { id: 'voice', label: isAr ? 'صوت' : 'Voice', icon: Mic },
     { id: 'homework', label: isAr ? 'الواجبات' : 'Homework', icon: BookOpen },
+    { id: 'web-intelligence', label: isAr ? 'البحث الذكي' : 'Search', icon: Globe },
     { id: 'writer', label: isAr ? 'الكاتب' : 'Writer', icon: PenTool },
-    { id: 'web-builder', label: isAr ? 'المطور' : 'Web Builder', icon: Layout },
+    { id: 'web-builder', label: isAr ? 'بناء الويب' : 'Web Builder', icon: Layout },
     { id: 'files', label: isAr ? 'ملفات' : 'Files', icon: FileText },
-    { id: 'images', label: isAr ? 'الصور' : 'Images', icon: ImageIcon },
+    { id: 'images', label: isAr ? 'صور' : 'Images', icon: ImageIcon },
     { id: 'settings', label: isAr ? 'الإعدادات' : 'Settings', icon: SettingsIcon },
   ];
 
@@ -70,21 +70,24 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden p-2 text-slate-300">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden p-2 text-slate-300 hover:text-white transition-colors">
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
-      <div className={`xl:hidden fixed inset-0 z-40 transition-all ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsMobileMenuOpen(false)}></div>
-        <div className={`absolute right-0 top-0 bottom-0 w-64 bg-[#0a0a0c] p-6 flex flex-col gap-2 transition-transform ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`xl:hidden fixed inset-0 z-40 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setIsMobileMenuOpen(false)}></div>
+        <div className={`absolute right-0 top-0 bottom-0 w-[280px] bg-[#0a0a0c] border-l border-white/10 p-6 pt-24 flex flex-col gap-2 transition-transform duration-300 overflow-y-auto ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => handleTabClick(item.id as AppTab)} className={`flex items-center gap-4 px-4 py-3 rounded-2xl ${activeTab === item.id ? 'bg-indigo-600/20 text-white' : 'text-slate-400'}`}>
+            <button 
+              key={item.id} 
+              onClick={() => handleTabClick(item.id as AppTab)} 
+              className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-indigo-600/20 text-white border border-indigo-500/30 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}
+            >
               <item.icon className="w-5 h-5" />
-              <span className="text-sm font-bold uppercase">{item.label}</span>
+              <span className="text-sm font-bold uppercase tracking-wide">{item.label}</span>
             </button>
           ))}
         </div>

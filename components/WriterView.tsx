@@ -10,12 +10,12 @@ import {
   Trash2,
   Loader2
 } from 'lucide-react';
-import { askTeacher, parseArabic } from '../services/aiService';
+import { runWriterAgent } from '../services/aiService';
 
 type WriterMode = 'grammar' | 'correction' | 'paragraph' | 'arabic';
 
 const WriterView: React.FC = () => {
-  // Use independent objects for each mode's input and results
+  const isAr = document.documentElement.lang === 'ar';
   const [inputs, setInputs] = useState<Record<WriterMode, string>>({
     grammar: '',
     correction: '',
@@ -34,11 +34,16 @@ const WriterView: React.FC = () => {
   const [mode, setMode] = useState<WriterMode>('grammar');
   const [copied, setCopied] = useState(false);
 
-  const modes = [
+  const modes = isAr ? [
+    { id: 'grammar', label: 'مصحح القواعد', icon: Check },
+    { id: 'correction', label: 'تصحيح الكلمات', icon: Type },
+    { id: 'paragraph', label: 'إنشاء فقرات', icon: FileText },
+    { id: 'arabic', label: 'الإعراب (نحو)', icon: Languages },
+  ] : [
     { id: 'grammar', label: 'Grammar Fixer', icon: Check },
     { id: 'correction', label: 'Word Correction', icon: Type },
     { id: 'paragraph', label: 'Paragraph Gen', icon: FileText },
-    { id: 'arabic', label: 'Grammar Expert (Arabic)', icon: Languages },
+    { id: 'arabic', label: 'Arabic Parsing (إعراب)', icon: Languages },
   ];
 
   const currentText = inputs[mode];
@@ -51,27 +56,19 @@ const WriterView: React.FC = () => {
   const handleAction = async () => {
     if (!currentText.trim()) return;
     setLoading(true);
-    
-    // Clear old result for this mode only
     setResults(prev => ({ ...prev, [mode]: '' }));
     
     let res = '';
-    const systemPrompt = "You are a professional writing assistant. Be precise and high-quality.";
     
     try {
-      if (mode === 'arabic') {
-        res = await parseArabic(currentText);
-      } else if (mode === 'grammar') {
-        res = await askTeacher(`Fix all grammar and spelling errors in this text: "${currentText}". Provide only the fixed text.`, undefined, systemPrompt);
-      } else if (mode === 'correction') {
-        res = await askTeacher(`Correct the word usage and improve the vocabulary of this text: "${currentText}". Provide only the improved text.`, undefined, systemPrompt);
-      } else if (mode === 'paragraph') {
-        res = await askTeacher(`Expand this idea into a professional and well-structured paragraph: "${currentText}".`, undefined, systemPrompt);
-      }
+      // Use the strict Writer Agent to enforce Neural Rules
+      // Arabic -> OpenAI
+      // Others -> Puter
+      res = await runWriterAgent(mode, currentText);
       
       setResults(prev => ({ ...prev, [mode]: res }));
     } catch (e) {
-      setResults(prev => ({ ...prev, [mode]: "An error occurred. Please check your connection." }));
+      setResults(prev => ({ ...prev, [mode]: isAr ? "حدث خطأ. يرجى التحقق من الاتصال." : "An error occurred. Please check your connection." }));
     } finally {
       setLoading(false);
     }
@@ -93,12 +90,12 @@ const WriterView: React.FC = () => {
     <div className="max-w-5xl mx-auto space-y-8 py-6 md:py-10 animate-in fade-in duration-700">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl md:text-4xl font-black text-white tracking-tighter">Writer Studio.</h1>
-        <p className="text-slate-500 font-medium text-xs md:text-base">Professional tools with independent workspaces</p>
+        <h1 className="text-2xl md:text-4xl font-black text-white tracking-tighter">{isAr ? 'استوديو الكتابة' : 'Writer Studio.'}</h1>
+        <p className="text-slate-500 font-medium text-xs md:text-base">{isAr ? 'تحسين النصوص احترافياً باستخدام Puter & OpenAI' : 'Professional text enhancement powered by Puter & OpenAI'}</p>
       </div>
 
       {/* Mode Tabs */}
-      <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
+      <div className={`flex flex-wrap justify-center gap-2 md:gap-3 px-2 ${isAr ? 'flex-row-reverse' : ''}`}>
         {modes.map((m) => {
           const Icon = m.icon;
           const isActive = mode === m.id;
@@ -132,17 +129,17 @@ const WriterView: React.FC = () => {
       {/* Main Studio Area */}
       <div className="bg-[#111827]/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-2xl space-y-6">
         <div className="space-y-4">
-          <div className="flex items-center justify-between px-2">
+          <div className={`flex items-center justify-between px-2 ${isAr ? 'flex-row-reverse' : ''}`}>
             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
-              {mode === 'arabic' ? 'مدخلات اللغة العربية' : `${mode.toUpperCase()} WORKSPACE`}
+              {mode === 'arabic' ? (isAr ? 'تحليل لغوي (OPENAI)' : 'ARABIC PARSING (OPENAI)') : `${mode.toUpperCase()} (PUTER)`}
             </label>
             {currentText && (
               <button 
                 onClick={clearCurrentInput}
                 className="flex items-center gap-1.5 text-slate-600 hover:text-red-400 transition-colors text-[9px] font-black uppercase tracking-widest"
               >
-                <Trash2 className="w-3 h-3" /> Clear Mode
+                <Trash2 className="w-3 h-3" /> {isAr ? 'مسح الوضع' : 'Clear Mode'}
               </button>
             )}
           </div>
@@ -152,24 +149,25 @@ const WriterView: React.FC = () => {
               value={currentText}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={
-                mode === 'grammar' ? 'Enter text to fix grammar...' :
-                mode === 'arabic' ? 'أدخل النص للإعراب التفصيلي...' :
-                mode === 'correction' ? 'Enter text to improve vocabulary...' :
-                'Enter your idea to expand into a paragraph...'
+                mode === 'grammar' ? (isAr ? 'أدخل نصاً لتصحيح الأخطاء (مثال: ذهبت الي المدرسة)...' : 'Enter text with errors (e.g., Ths is a sentnce)...') :
+                mode === 'arabic' ? 'أدخل جملة عربية للإعراب (مثال: الطالب يذاكر بجد)...' :
+                mode === 'correction' ? (isAr ? 'أدخل نصاً لتحسين المفردات...' : 'Enter text to improve vocabulary...') :
+                (isAr ? 'أدخل فكرة لإنشاء فقرة منظمة...' : 'Enter an idea to generate a structured paragraph...')
               }
               className={`
                 w-full min-h-[180px] md:min-h-[220px] bg-[#030712]/50 border border-white/5 rounded-2xl md:rounded-3xl p-6 md:p-8 
                 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm md:text-base leading-relaxed text-slate-200
                 placeholder:text-slate-800 resize-none
-                ${mode === 'arabic' ? 'text-right font-arabic' : 'text-left'}
+                ${isAr ? 'text-right' : 'text-left'}
+                ${mode === 'arabic' ? 'font-arabic' : ''}
               `}
-              dir={mode === 'arabic' ? 'rtl' : 'ltr'}
+              dir={isAr ? 'rtl' : 'ltr'}
             />
             {loading && (
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl md:rounded-3xl flex items-center justify-center z-10">
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
-                  <span className="text-indigo-400 text-[9px] font-black uppercase tracking-[0.3em] animate-pulse">AI Processing...</span>
+                  <span className="text-indigo-400 text-[9px] font-black uppercase tracking-[0.3em] animate-pulse">{isAr ? 'جاري المعالجة...' : 'Processing...'}</span>
                 </div>
               </div>
             )}
@@ -189,21 +187,21 @@ const WriterView: React.FC = () => {
         {/* Result Area */}
         {currentResult && (
           <div className="mt-6 pt-6 border-t border-white/5 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="flex items-center justify-between mb-3">
+            <div className={`flex items-center justify-between mb-3 ${isAr ? 'flex-row-reverse' : ''}`}>
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                Optimized Output
+                {isAr ? 'النتيجة المحسنة' : 'Enhanced Output'}
               </span>
               <button 
                 onClick={copyToClipboard}
                 className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-[9px] font-black uppercase tracking-widest text-slate-400"
               >
-                {copied ? <><Check className="w-3 h-3 text-emerald-500" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Result</>}
+                {copied ? <><Check className="w-3 h-3 text-emerald-500" /> {isAr ? 'تم النسخ' : 'Copied'}</> : <><Copy className="w-3 h-3" /> {isAr ? 'نسخ' : 'Copy Result'}</>}
               </button>
             </div>
             <div 
-              className={`p-5 md:p-6 bg-[#0a0a0c]/80 rounded-xl md:rounded-2xl border border-white/5 text-slate-100 text-sm md:text-base leading-relaxed whitespace-pre-wrap shadow-inner ${mode === 'arabic' ? 'text-right' : 'text-left'}`}
-              dir={mode === 'arabic' ? 'rtl' : 'ltr'}
+              className={`p-5 md:p-6 bg-[#0a0a0c]/80 rounded-xl md:rounded-2xl border border-white/5 text-slate-100 text-sm md:text-base leading-relaxed whitespace-pre-wrap shadow-inner ${isAr ? 'text-right' : 'text-left'}`}
+              dir={isAr ? 'rtl' : 'ltr'}
             >
               {currentResult}
             </div>
@@ -213,7 +211,7 @@ const WriterView: React.FC = () => {
 
       {/* Footer Info */}
       <div className="text-center opacity-30">
-        <p className="text-[7px] font-black text-slate-500 uppercase tracking-[0.8em]">Independent Neural Segments | v4.2</p>
+        <p className="text-[7px] font-black text-slate-500 uppercase tracking-[0.8em]">{isAr ? 'استوديو الكتابة | مدعوم بـ Puter و OpenAI' : 'Writer Studio | Puter & OpenAI Integrated'}</p>
       </div>
     </div>
   );

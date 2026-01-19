@@ -28,26 +28,26 @@ const ImageGenView: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-8 py-6 px-4">
       <div className="bg-[#111827]/60 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 blur-[100px] -z-10"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 blur-[100px] -z-10"></div>
         
         <div className="flex flex-col gap-6">
-          <div className={`flex items-center gap-4 text-indigo-400 ${isAr ? 'flex-row-reverse text-right' : ''}`}>
-            <div className="bg-indigo-600/20 p-3 rounded-2xl">
-              <ImageIcon className="w-6 h-6" />
+          <div className={`flex items-center gap-4 text-yellow-400 ${isAr ? 'flex-row-reverse text-right' : ''}`}>
+            <div className="bg-yellow-400/20 p-3 rounded-2xl">
+              <ImageIcon className="w-6 h-6 text-yellow-300" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-white leading-none mb-1">{isAr ? 'ستوديو الصور' : 'Visual Studio'}</h2>
-              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{isAr ? 'توليد الصور بالذكاء الاصطناعي' : 'Neural Image Generation'}</p>
+              <h2 className="text-2xl font-black text-white leading-none mb-1">{isAr ? 'نانو بنانا (الرسم)' : 'Nano Banana'}</h2>
+              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{isAr ? 'محرك توليد الصور' : 'Neural Image Engine'}</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className={`flex flex-col md:flex-row gap-4 ${isAr ? 'flex-row-reverse' : ''}`}>
             <div className="flex-1 space-y-4">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder={isAr ? "صف الصورة التي تتخيلها..." : "Describe the image you want to create..."}
-                className={`w-full bg-black/40 border border-white/5 rounded-2xl p-6 h-32 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-200 resize-none text-sm md:text-base ${isAr ? 'text-right' : 'text-left'}`}
+                placeholder={isAr ? "صف الصورة التي تتخيلها بدقة..." : "Describe the image you want Nano Banana to create..."}
+                className={`w-full bg-black/40 border border-white/5 rounded-2xl p-6 h-32 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 text-slate-200 resize-none text-sm md:text-base ${isAr ? 'text-right' : 'text-left'}`}
                 dir={isAr ? 'rtl' : 'ltr'}
               />
               
@@ -56,7 +56,7 @@ const ImageGenView: React.FC = () => {
                   <button
                     key={r.id}
                     onClick={() => setAspectRatio(r.id)}
-                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${aspectRatio === r.id ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/5 text-slate-500 hover:text-white'}`}
+                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${aspectRatio === r.id ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-white/5 border-white/5 text-slate-500 hover:text-white'}`}
                   >
                     {r.label} ({r.id})
                   </button>
@@ -67,7 +67,7 @@ const ImageGenView: React.FC = () => {
             <button
               onClick={handleGenerate}
               disabled={loading || !prompt.trim()}
-              className="md:w-48 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl flex flex-col items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-xl shadow-indigo-600/30 group py-6 md:py-0"
+              className="md:w-48 bg-yellow-500 hover:bg-yellow-400 text-black font-black rounded-2xl flex flex-col items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-xl shadow-yellow-500/20 group py-6 md:py-0"
             >
               {loading ? (
                 <>
@@ -90,19 +90,19 @@ const ImageGenView: React.FC = () => {
         {loading ? (
           <div className="flex flex-col items-center gap-8 text-center px-6">
             <div className="relative">
-              <div className="w-24 h-24 md:w-32 md:h-32 border-2 border-indigo-500/10 rounded-full animate-ping"></div>
+              <div className="w-24 h-24 md:w-32 md:h-32 border-2 border-yellow-500/10 rounded-full animate-ping"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <ImageIcon className="w-10 h-10 text-indigo-400 animate-bounce" />
+                <ImageIcon className="w-10 h-10 text-yellow-400 animate-bounce" />
               </div>
             </div>
             <div className="space-y-2">
               <h3 className="text-xl md:text-2xl font-black text-white">{isAr ? 'جاري بناء النمط العصبي' : 'Visualizing Concepts'}</h3>
-              <p className="text-[9px] text-slate-500 uppercase tracking-[0.3em] font-bold">{isAr ? 'تجميع جزيئات الصورة...' : 'Assembling neural patterns...'}</p>
+              <p className="text-[9px] text-slate-500 uppercase tracking-[0.3em] font-bold">{isAr ? 'نانو بنانا يعمل الآن...' : 'Nano Banana Engine Active...'}</p>
             </div>
           </div>
         ) : imageUrl ? (
           <div className="w-full h-full flex items-center justify-center bg-[#050505] p-2 md:p-10">
-            <div className="relative max-w-full max-h-[80vh] shadow-[0_0_100px_rgba(79,70,229,0.1)] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
+            <div className="relative max-w-full max-h-[80vh] shadow-[0_0_100px_rgba(234,179,8,0.1)] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
               <img 
                 src={imageUrl} 
                 alt="Generated Art" 
@@ -113,10 +113,10 @@ const ImageGenView: React.FC = () => {
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = imageUrl;
-                    link.download = `teacher-ai-${Date.now()}.png`;
+                    link.download = `nano-banana-${Date.now()}.png`;
                     link.click();
                   }}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl"
+                  className="flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl"
                 >
                   <Download className="w-4 h-4" /> {isAr ? 'تحميل' : 'Download'}
                 </button>
@@ -132,9 +132,9 @@ const ImageGenView: React.FC = () => {
         ) : (
           <div className="flex flex-col items-center gap-6 opacity-20">
             <div className="p-8 border-2 border-dashed border-white/10 rounded-full">
-              <ImageIcon className="w-12 h-12 md:w-20 md:h-20" />
+              <ImageIcon className="w-12 h-12 md:w-20 md:h-20 text-yellow-500" />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">{isAr ? 'جاهز للإبداع' : 'Ready for Creation'}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow-500">{isAr ? 'نانو بنانا جاهز' : 'Nano Banana Ready'}</p>
           </div>
         )}
       </div>

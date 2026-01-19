@@ -1,60 +1,79 @@
 
-import { askTeacher, searchWeb } from './aiService';
+import { callPuter, askWebIntelligence } from './aiService';
 
 interface SlideData {
   title: string;
   bulletPoints: string[];
-  imageSearchQuery?: string;
 }
 
 /**
- * Utility to fetch an image as a base64 string for docx.js
+ * GENERATE POWERPOINT (PPTX)
+ * Flow: 
+ * 1. Puter analyzes topic.
+ * 2. If includeWebData: Calls SerpAPI for facts & images.
+ * 3. Puter structures content into JSON.
+ * 4. PptxGenJS builds file with images embedded.
  */
-async function fetchImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
-    });
-  } catch (e) {
-    console.error("Failed to fetch image for DOCX:", e);
-    return null;
-  }
-}
+export async function generatePPT(topic: string, numSlides: number, includeWebData: boolean) {
+  // 1. RESEARCH PHASE (SERPAPI)
+  let webContext = "";
+  let relevantImages: string[] = [];
 
-export async function generatePPT(topic: string, numSlides: number, includeImages: boolean) {
-  // Ensure we don't overwhelm the AI by requesting too much in one block if slides > 15
-  // For larger slide counts, we request a more concise structure
-  const prompt = `Generate a comprehensive professional presentation structure for the topic: "${topic}". 
-  Provide exactly ${numSlides} slides. Each slide MUST have a "title" and a list of 3-4 "bulletPoints" (keep points professional and educational).
-  ${includeImages ? 'Include a specific "imageSearchQuery" for each slide to find a high-quality relevant illustrative image.' : ''}
-  Format strictly as a JSON array: [{"title": "...", "bulletPoints": ["...", "..."] ${includeImages ? ', "imageSearchQuery": "..."' : ''}}, ...]`;
+  if (includeWebData) {
+    try {
+      // Ask for visuals and facts
+      const search = await askWebIntelligence(`Visuals and key facts for presentation: ${topic}`);
+      webContext = `\n\n[Verified Research Data]:\n${search.text}\n`;
+      
+      // Collect images if available to enhance slides
+      if (search.images && Array.isArray(search.images)) {
+        relevantImages = search.images.map(img => img.url).filter(url => url);
+      }
+    } catch (e) {
+      console.warn("PPT Generation: Web research failed, proceeding with internal knowledge.");
+    }
+  }
+
+  // 2. STRUCTURING PHASE (PUTER)
+  const prompt = `
+    Role: Professional Presentation Architect.
+    Task: Create a structured outline for a PowerPoint presentation.
+    Topic: "${topic}"
+    Target Slide Count: ${numSlides}
+    
+    ${webContext}
+    
+    Instructions:
+    - Return a valid JSON array of objects.
+    - Schema: [{"title": "Slide Title", "bulletPoints": ["Point 1", "Point 2", "Point 3"]}]
+    - Ensure logical flow and educational depth.
+    - Do NOT output markdown code blocks. Just raw JSON string.
+  `;
   
-  const rawContent = await askTeacher(prompt, "You are a master presentation designer. Respond only with valid JSON.");
+  const rawContent = await callPuter(prompt, 'doc_generation');
   
+  // 3. CONSTRUCTION PHASE
   try {
     const jsonStr = rawContent.replace(/```json|```/g, '').trim();
-    const slidesData: SlideData[] = JSON.parse(jsonStr);
+    let slidesData: SlideData[] = [];
+    try {
+        slidesData = JSON.parse(jsonStr);
+    } catch (parseError) {
+        // Fallback: try to find array in text
+        const match = jsonStr.match(/\[.*\]/s);
+        if (match) slidesData = JSON.parse(match[0]);
+        else throw new Error("Invalid JSON structure");
+    }
     
     // @ts-ignore
     const pptx = new PptxGenJS();
     const isArabic = /[\u0600-\u06FF]/.test(topic);
     pptx.rtl = isArabic;
     
-    // Set presentation properties
-    pptx.title = `Teacher AI: ${topic}`;
-    pptx.subject = topic;
-
-    for (const data of slidesData) {
+    slidesData.forEach((data, index) => {
       const slide = pptx.addSlide();
       
-      // Background Accent (Optional: keep it clean)
-      // slide.background = { color: 'F1F5F9' };
-
-      // Title
+      // 1. Title
       slide.addText(data.title, { 
         x: 0.5, y: 0.3, w: '90%', h: 0.8, 
         fontSize: 28, bold: true, color: '1E293B',
@@ -62,55 +81,77 @@ export async function generatePPT(topic: string, numSlides: number, includeImage
         fontFace: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
       });
 
-      // Content Box
-      const textWidth = includeImages ? '50%' : '90%';
+      // 2. Bullet Points (Layout adapts if image exists)
+      const hasImage = relevantImages.length > 0;
       slide.addText(data.bulletPoints.join('\n\n'), { 
-        x: isArabic && includeImages ? 4.5 : 0.5, 
-        y: 1.2, w: textWidth, h: 4.2, 
+        x: 0.5, y: 1.2, 
+        w: hasImage ? '55%' : '90%', 
+        h: 4.2, 
         fontSize: 16, color: '475569',
         bullet: true,
         align: isArabic ? pptx.AlignH.right : pptx.AlignH.left,
         fontFace: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
       });
 
-      // Image Handling
-      if (includeImages && data.imageSearchQuery) {
-        try {
-          const searchResults = await searchWeb(data.imageSearchQuery);
-          const imageUrl = searchResults[0]?.thumbnail || searchResults[0]?.link;
-          if (imageUrl) {
-            slide.addImage({ 
-              path: imageUrl, 
-              x: isArabic ? 0.5 : 5.0, 
-              y: 1.2, w: 4.5, h: 3.8,
-              sizing: { type: 'contain', w: 4.5, h: 3.8 }
-            });
-          }
-        } catch (imgErr) {
-          console.error("Image search failed for slide:", data.title);
-        }
+      // 3. Image Integration (Rotates through found images)
+      if (hasImage) {
+          const imgUrl = relevantImages[index % relevantImages.length];
+          // Simple layout: Image on the right
+          slide.addImage({ 
+              path: imgUrl, 
+              x: '62%', y: 1.2, w: '33%', h: 3 
+          });
       }
-    }
-    
+    });
+
     pptx.writeFile({ fileName: `TeacherAI_${topic.replace(/\s+/g, '_')}.pptx` });
   } catch (e) {
     console.error("PPT Generation Error:", e);
-    throw new Error("Failed to parse presentation structure from AI.");
+    throw new Error("Teacher AI Brain could not parse presentation structure.");
   }
 }
 
-export async function generateDOC(topic: string, wordCount: number, includeImages: boolean) {
-  const maxWords = Math.min(wordCount, 4000);
-  const prompt = `Write a deep-dive educational research paper about: "${topic}". 
-  Target length: approximately ${maxWords} words. 
-  Structure it with clear headings, subheadings, and detailed academic paragraphs. 
-  ${includeImages ? 'After major section headings, include a line strictly formatted as "IMAGE_QUERY: [query]" to insert a relevant image.' : ''}
-  Language must be professional and authoritative. Respond in the user's language.`;
+/**
+ * GENERATE WORD DOC (DOCX)
+ * Flow:
+ * 1. Puter analyzes topic.
+ * 2. If includeWebData: Calls SerpAPI for in-depth research.
+ * 3. Puter writes academic content.
+ * 4. Docx Packer builds the file.
+ */
+export async function generateDOC(topic: string, wordCount: number, includeWebData: boolean) {
+  // 1. RESEARCH PHASE (SERPAPI)
+  let webContext = "";
+  if (includeWebData) {
+    try {
+        const search = await askWebIntelligence(`In-depth research and citations for: ${topic}`);
+        webContext = `\n\n[Research Data (SerpAPI)]:\n${search.text}\n\n[Reference Links]:\n${search.links.map(l => l.url).join(', ')}`;
+    } catch (e) {
+        console.warn("DOC Generation: Web research failed.");
+    }
+  }
+
+  // 2. WRITING PHASE (PUTER)
+  const prompt = `
+    Role: Academic Researcher & Writer.
+    Task: Write a comprehensive document.
+    Topic: "${topic}"
+    Target Length: Approx ${wordCount} words.
+    
+    ${webContext}
+    
+    Instructions:
+    - Use clear headings (# Heading) and subheadings (## Subheading).
+    - Write structured, academic paragraphs.
+    - If links are provided in research, cite them at the end.
+    - Do not use markdown code blocks for the whole text, just plain text with markdown-style headers.
+  `;
   
-  const content = await askTeacher(prompt, "You are a professional academic writer.");
+  const content = await callPuter(prompt, 'doc_generation');
   
+  // 3. CONSTRUCTION PHASE
   // @ts-ignore
-  const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType } = window.docx;
+  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
   const isArabic = /[\u0600-\u06FF]/.test(topic);
 
   const docChildren: any[] = [
@@ -118,53 +159,39 @@ export async function generateDOC(topic: string, wordCount: number, includeImage
       text: topic,
       heading: HeadingLevel.HEADING_1,
       alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      spacing: { after: 400 }
+      spacing: { after: 400 },
+      bidirectional: isArabic
     })
   ];
 
   const lines = content.split('\n');
-  
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-
-    if (includeImages && trimmed.startsWith("IMAGE_QUERY:")) {
-      const query = trimmed.replace("IMAGE_QUERY:", "").trim();
-      try {
-        const results = await searchWeb(query);
-        const imageUrl = results[0]?.thumbnail || results[0]?.link;
-        
-        if (imageUrl) {
-          const base64 = await fetchImageAsBase64(imageUrl);
-          if (base64) {
-            docChildren.push(new Paragraph({
-              children: [
-                new ImageRun({
-                  data: base64,
-                  transformation: { width: 500, height: 350 }
-                })
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: { before: 300, after: 300 }
-            }));
-          }
-        }
-      } catch (err) {
-        console.error("Image fetch failed for DOCX:", query);
-      }
-      continue;
+    
+    // Detect Headers
+    let headingLevel = undefined;
+    let text = trimmed;
+    
+    if (trimmed.startsWith('# ')) {
+        headingLevel = HeadingLevel.HEADING_1;
+        text = trimmed.replace('# ', '');
+    } else if (trimmed.startsWith('## ')) {
+        headingLevel = HeadingLevel.HEADING_2;
+        text = trimmed.replace('## ', '');
+    } else if (trimmed.startsWith('### ')) {
+        headingLevel = HeadingLevel.HEADING_3;
+        text = trimmed.replace('### ', '');
     }
 
-    // Detect if it's a heading
-    const isHeading = trimmed.length < 100 && (trimmed.startsWith('#') || trimmed.toUpperCase() === trimmed);
-    
     docChildren.push(new Paragraph({
       children: [new TextRun({
-        text: trimmed.replace(/^#+\s*/, ''),
-        bold: isHeading,
-        size: isHeading ? 32 : 24
+        text: text,
+        bold: !!headingLevel,
+        size: headingLevel ? 32 : 24,
+        font: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
       })],
-      heading: isHeading ? HeadingLevel.HEADING_2 : undefined,
+      heading: headingLevel,
       alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
       spacing: { after: 200 },
       bidirectional: isArabic
@@ -172,12 +199,7 @@ export async function generateDOC(topic: string, wordCount: number, includeImage
   }
 
   const doc = new Document({
-    sections: [{
-      properties: {
-        type: 'nextPage',
-      },
-      children: docChildren,
-    }],
+    sections: [{ properties: { type: 'nextPage' }, children: docChildren }],
   });
 
   const blob = await Packer.toBlob(doc);

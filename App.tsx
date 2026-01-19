@@ -35,16 +35,11 @@ const App: React.FC = () => {
   const isChat = activeTab === 'chat';
 
   return (
-    <div className="h-screen flex flex-col bg-[#050505] overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#050505] overflow-hidden">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      {/* 
-          Locked Layout Strategy:
-          - Non-chat views: Use standard scroll
-          - Chat view: Locked height, internal scroll only
-      */}
-      <main className={`flex-1 relative flex flex-col overflow-hidden ${isChat ? 'mt-[60px] md:mt-[68px]' : 'mt-[72px] overflow-y-auto'}`}>
-        <div className={`flex-1 flex flex-col ${isChat ? 'w-full h-full' : 'max-w-[1920px] mx-auto w-full px-4 md:px-10 pb-10'}`}>
+      <main className={`flex-1 relative flex flex-col overflow-hidden ${isChat ? 'mt-[60px] md:mt-[68px]' : 'mt-[72px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10'}`}>
+        <div className={`flex-1 flex flex-col ${isChat ? 'w-full h-full' : 'max-w-[1920px] mx-auto w-full px-4 md:px-10 pb-20 md:pb-10'}`}>
           {renderContent()}
         </div>
       </main>
