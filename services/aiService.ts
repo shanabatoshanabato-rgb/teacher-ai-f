@@ -16,53 +16,92 @@
 // Declare Puter global from script tag
 declare const puter: any;
 
-// Helper to safely access env vars explicitly (Static access is required for bundlers)
-const getEnvVar = (key: string) => {
-  // We cannot use dynamic access like process.env[key] reliably in frontend builds.
-  // We must check specific variations explicitly.
+// ============================================================================
+// SECURITY & KEY MANAGEMENT (ADVANCED)
+// ============================================================================
+
+// Static Salt for XOR Encryption
+// This makes the stored keys unreadable even if someone tries to base64 decode them directly.
+const ENCRYPTION_SALT = "TEACHER_AI_SECURE_SALT_V99";
+
+const xorCipher = (text: string): string => {
+  const textChars = text.split('');
+  const saltChars = ENCRYPTION_SALT.split('');
   
-  // VITE (import.meta.env)
+  return textChars.map((char, i) => {
+    return String.fromCharCode(char.charCodeAt(0) ^ saltChars[i % saltChars.length].charCodeAt(0));
+  }).join('');
+};
+
+export const secureStorage = {
+  save: (key: string, value: string) => {
+    if (!value) return;
+    try {
+      // 1. XOR Encrypt with Salt
+      const encrypted = xorCipher(value);
+      // 2. Base64 Encode to make it storage-safe
+      const safeString = btoa(encrypted);
+      localStorage.setItem(key, `xor_${safeString}`);
+    } catch (e) {
+      console.error("Encryption failed", e);
+    }
+  },
+  get: (key: string): string => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return '';
+      
+      // Handle new XOR encryption
+      if (raw.startsWith('xor_')) {
+        const base64Part = raw.substring(4);
+        const decoded = atob(base64Part);
+        return xorCipher(decoded); // XOR is reversible with the same function
+      }
+      
+      // Fallback for older Base64 keys (migration path)
+      if (raw.startsWith('enc_')) {
+        return atob(raw.substring(4));
+      }
+      
+      return raw; // Fallback for plain text
+    } catch (e) {
+      return '';
+    }
+  },
+  remove: (key: string) => {
+    localStorage.removeItem(key);
+  }
+};
+
+const getKey = (storageKey: string, envVite: string, envReact: string): string => {
+  // 1. Check Secured LocalStorage
+  const local = secureStorage.get(storageKey);
+  if (local) return local.trim();
+
+  // 2. Check Vite Env
   // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[envVite]) {
     // @ts-ignore
-    const viteKey = import.meta.env[`VITE_${key}`] || import.meta.env[key];
-    if (viteKey) return viteKey;
+    return import.meta.env[envVite];
   }
 
-  // PROCESS.ENV (React App, Next.js)
+  // 3. Check Process Env
   // @ts-ignore
   if (typeof process !== 'undefined' && process.env) {
-    // Explicit checks for common prefixes
-    switch (key) {
-      case 'OPENAI_API_KEY':
-        // @ts-ignore
-        return process.env.REACT_APP_OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-      case 'GROQ_API_KEY':
-        // @ts-ignore
-        return process.env.REACT_APP_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY;
-      case 'ELEVEN_LABS_API_KEY':
-        // @ts-ignore
-        return process.env.REACT_APP_ELEVEN_LABS_API_KEY || process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || process.env.VITE_ELEVEN_LABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;
-      case 'SERPAPI_API_KEY':
-        // @ts-ignore
-        return process.env.REACT_APP_SERPAPI_API_KEY || process.env.NEXT_PUBLIC_SERPAPI_API_KEY || process.env.VITE_SERPAPI_API_KEY || process.env.SERPAPI_API_KEY;
-      case 'NANO_BANANA_KEY':
-        // @ts-ignore
-        return process.env.REACT_APP_NANO_BANANA_KEY || process.env.NEXT_PUBLIC_NANO_BANANA_KEY || process.env.VITE_NANO_BANANA_KEY || process.env.NANO_BANANA_KEY;
-      default:
-        return '';
-    }
+    // @ts-ignore
+    return process.env[envReact] || process.env[envVite.replace('VITE_', '')] || '';
   }
+
   return '';
 };
 
-// API CONFIGURATION
-const API_KEYS = {
-  OPENAI: getEnvVar('OPENAI_API_KEY')?.trim(),
-  GROQ: getEnvVar('GROQ_API_KEY')?.trim(),
-  ELEVEN_LABS: getEnvVar('ELEVEN_LABS_API_KEY')?.trim(),
-  SERPAPI: getEnvVar('SERPAPI_API_KEY')?.trim(),
-  NANO_BANANA: getEnvVar('NANO_BANANA_KEY')?.trim()
+// EXPORTED API KEYS OBJECT
+export const API_KEYS = {
+  get OPENAI() { return getKey('teacher_key_openai', 'VITE_OPENAI_API_KEY', 'REACT_APP_OPENAI_API_KEY'); },
+  get GROQ() { return getKey('teacher_key_groq', 'VITE_GROQ_API_KEY', 'REACT_APP_GROQ_API_KEY'); },
+  get ELEVEN_LABS() { return getKey('teacher_key_eleven', 'VITE_ELEVEN_LABS_API_KEY', 'REACT_APP_ELEVEN_LABS_API_KEY'); },
+  get SERPAPI() { return getKey('teacher_key_serp', 'VITE_SERPAPI_API_KEY', 'REACT_APP_SERPAPI_API_KEY'); },
+  get NANO_BANANA() { return getKey('teacher_key_nano', 'VITE_NANO_BANANA_KEY', 'REACT_APP_NANO_BANANA_KEY'); }
 };
 
 const isAr = () => document.documentElement.lang === 'ar';
