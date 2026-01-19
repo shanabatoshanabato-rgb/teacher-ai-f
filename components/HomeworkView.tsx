@@ -2,7 +2,8 @@
 import React, { useState, useRef } from 'react';
 import { 
   Calculator, Atom, Beaker, Dna, Scroll, Languages, BookOpen, Image as ImageIcon,
-  Sparkles, Loader2, Smile, GraduationCap, Zap, ArrowRight, X, ScanSearch
+  Sparkles, Loader2, Smile, GraduationCap, Zap, ArrowRight, X, ScanSearch, 
+  BrainCircuit, Globe, Scan
 } from 'lucide-react';
 import { solveHomework } from '../services/aiService';
 
@@ -14,6 +15,7 @@ const HomeworkView: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [solution, setSolution] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'ocr' | 'thinking' | 'searching' | 'solving'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const subjects = isAr ? [
@@ -25,13 +27,13 @@ const HomeworkView: React.FC = () => {
     { id: 'arabic', label: 'لغة عربية', icon: Languages },
     { id: 'english', label: 'لغة إنجليزية', icon: BookOpen },
   ] : [
-    { id: 'math', label: 'math', icon: Calculator },
-    { id: 'physics', label: 'physics', icon: Atom },
-    { id: 'chemistry', label: 'chemistry', icon: Beaker },
-    { id: 'science', label: 'science', icon: Dna },
-    { id: 'history', label: 'history', icon: Scroll },
-    { id: 'arabic', label: 'arabic', icon: Languages },
-    { id: 'english', label: 'english', icon: BookOpen },
+    { id: 'math', label: 'Math', icon: Calculator },
+    { id: 'physics', label: 'Physics', icon: Atom },
+    { id: 'chemistry', label: 'Chemistry', icon: Beaker },
+    { id: 'science', label: 'Science', icon: Dna },
+    { id: 'history', label: 'History', icon: Scroll },
+    { id: 'arabic', label: 'Arabic', icon: Languages },
+    { id: 'english', label: 'English', icon: BookOpen },
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,14 +51,19 @@ const HomeworkView: React.FC = () => {
     setSolution(null);
     
     try {
-      // Call the strict Homework Orchestrator
-      // OCR -> Intent Analysis -> Search? -> Solve
-      const res = await solveHomework(question, subject, style, selectedImage || undefined);
+      const res = await solveHomework(
+        question, 
+        subject, 
+        style, 
+        selectedImage || undefined,
+        (p: any) => setPhase(p)
+      );
       setSolution(res);
     } catch (e) {
       setSolution(isAr ? "عذراً، حدث خطأ أثناء معالجة الواجب." : "Sorry, an error occurred while processing the homework.");
     } finally {
       setLoading(false);
+      setPhase('idle');
     }
   };
 
@@ -114,9 +121,29 @@ const HomeworkView: React.FC = () => {
                 dir={isAr ? 'rtl' : 'ltr'}
               />
               {loading && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-md rounded-[2rem] flex flex-col items-center justify-center z-30 gap-6">
-                  <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
-                  <span className="text-blue-400 font-black uppercase tracking-[0.5em] text-[10px] animate-pulse">{isAr ? 'جاري تحليل الصورة والبيانات...' : 'AI OCR & Solving...'}</span>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-md rounded-[2rem] flex flex-col items-center justify-center z-30 gap-6 px-10 text-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-blue-500 blur-[50px] opacity-20 animate-pulse"></div>
+                    <Loader2 className="w-16 h-16 text-blue-500 animate-spin relative" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <p className="text-blue-400 font-black uppercase tracking-[0.4em] text-xs">
+                        {phase === 'ocr' && (isAr ? 'جاري المسح الضوئي (OCR)' : 'Puter OCR Scanning')}
+                        {phase === 'thinking' && (isAr ? 'تحليل المسألة (Brain)' : 'Puter Analysis')}
+                        {phase === 'searching' && (isAr ? 'البحث في الويب (SerpAPI)' : 'SerpAPI Researching')}
+                        {phase === 'solving' && (isAr ? 'صياغة الحل التعليمي' : 'Synthesizing Solution')}
+                      </p>
+                      <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">
+                        {isAr ? 'محرك Puter العصبي يعمل الآن' : 'Puter Neural Engine is Orchestrating'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -144,6 +171,20 @@ const HomeworkView: React.FC = () => {
                 {solution.split('\n').map((line, i) => (
                   <p key={i} className="mb-4">{line}</p>
                 ))}
+              </div>
+              <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-center gap-10 opacity-30">
+                <div className="flex items-center gap-2">
+                   <BrainCircuit className="w-4 h-4" />
+                   <span className="text-[8px] font-black uppercase tracking-widest">Puter Brain</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Scan className="w-4 h-4" />
+                   <span className="text-[8px] font-black uppercase tracking-widest">Neural OCR</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Globe className="w-4 h-4" />
+                   <span className="text-[8px] font-black uppercase tracking-widest">SerpAPI Ready</span>
+                </div>
               </div>
             </div>
           )}

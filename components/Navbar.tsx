@@ -26,15 +26,15 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const isAr = document.documentElement.lang === 'ar';
 
   const navItems = [
-    { id: 'chat', label: isAr ? 'المعلم (Teacher AI)' : 'Teacher AI', icon: MessageSquare },
-    { id: 'voice', label: isAr ? 'صوت' : 'Voice', icon: Mic },
-    { id: 'homework', label: isAr ? 'الواجبات' : 'Homework', icon: BookOpen },
-    { id: 'web-intelligence', label: isAr ? 'البحث الذكي' : 'Search', icon: Globe },
-    { id: 'writer', label: isAr ? 'الكاتب' : 'Writer', icon: PenTool },
+    { id: 'chat', label: isAr ? 'شات المعلم' : 'Teacher Chat', icon: MessageSquare },
+    { id: 'voice', label: isAr ? 'صوت مباشر' : 'Live Voice', icon: Mic },
+    { id: 'homework', label: isAr ? 'الواجبات' : 'Homework Mode', icon: BookOpen },
+    { id: 'web-intelligence', label: isAr ? 'البحث الذكي' : 'Search Intelligence', icon: Globe },
+    { id: 'writer', label: isAr ? 'استوديو الكتابة' : 'Writer Studio', icon: PenTool },
     { id: 'web-builder', label: isAr ? 'بناء الويب' : 'Web Builder', icon: Layout },
-    { id: 'files', label: isAr ? 'ملفات' : 'Files', icon: FileText },
-    { id: 'images', label: isAr ? 'صور' : 'Images', icon: ImageIcon },
-    { id: 'settings', label: isAr ? 'الإعدادات' : 'Settings', icon: SettingsIcon },
+    { id: 'files', label: isAr ? 'ملفات' : 'Doc Factory', icon: FileText },
+    { id: 'images', label: isAr ? 'توليد الصور' : 'Image Studio', icon: ImageIcon },
+    { id: 'settings', label: isAr ? 'مركز التحكم' : 'Control Center', icon: SettingsIcon },
   ];
 
   const handleTabClick = (tab: AppTab) => {
@@ -53,18 +53,18 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             <div className={`p-2 rounded-xl transition-colors ${activeTab === 'home' ? 'bg-white text-black' : 'bg-indigo-600 text-white'}`}>
               <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
             </div>
-            <span className="text-lg md:text-xl font-bold text-white">Teacher AI</span>
+            <span className="text-lg md:text-xl font-bold text-white tracking-tighter">Teacher AI</span>
           </div>
 
-          <div className="hidden xl:flex items-center gap-1 bg-white/5 p-1 rounded-2xl">
+          <div className="hidden xl:flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item.id as AppTab)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${activeTab === item.id ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${activeTab === item.id ? 'bg-white/10 text-white border border-white/10' : 'text-slate-400 hover:text-white'}`}
               >
                 <item.icon className="w-4 h-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
               </button>
             ))}
           </div>
@@ -77,17 +77,18 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         </div>
       </nav>
 
-      <div className={`xl:hidden fixed inset-0 z-40 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setIsMobileMenuOpen(false)}></div>
-        <div className={`absolute right-0 top-0 bottom-0 w-[280px] bg-[#0a0a0c] border-l border-white/10 p-6 pt-24 flex flex-col gap-2 transition-transform duration-300 overflow-y-auto ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      {/* Mobile Menu */}
+      <div className={`xl:hidden fixed inset-0 z-[60] transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setIsMobileMenuOpen(false)}></div>
+        <div className={`absolute right-0 top-0 bottom-0 w-[300px] bg-[#0a0a0c] border-l border-white/10 p-6 pt-24 flex flex-col gap-2 transition-transform duration-500 overflow-y-auto ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           {navItems.map((item) => (
             <button 
               key={item.id} 
               onClick={() => handleTabClick(item.id as AppTab)} 
-              className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-indigo-600/20 text-white border border-indigo-500/30 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}
+              className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-indigo-600/20 text-white border border-indigo-500/30 shadow-lg' : 'text-slate-500 hover:bg-white/5'}`}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-sm font-bold uppercase tracking-wide">{item.label}</span>
+              <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
             </button>
           ))}
         </div>

@@ -1,210 +1,213 @@
 
-import { callPuter, askWebIntelligence } from './aiService';
+import { callNeuralBrain, askWebIntelligence } from './aiService';
 
 interface SlideData {
   title: string;
   bulletPoints: string[];
+  imageQuery?: string;
 }
 
 /**
- * GENERATE POWERPOINT (PPTX)
- * Flow: 
- * 1. Puter analyzes topic.
- * 2. If includeWebData: Calls SerpAPI for facts & images.
- * 3. Puter structures content into JSON.
- * 4. PptxGenJS builds file with images embedded.
+ * GENERATE POWERPOINT (PPTX) - DOCUMENT & PPT MODE
  */
 export async function generatePPT(topic: string, numSlides: number, includeWebData: boolean) {
-  // 1. RESEARCH PHASE (SERPAPI)
-  let webContext = "";
-  let relevantImages: string[] = [];
+  let slideImages: string[] = [];
 
-  if (includeWebData) {
-    try {
-      // Ask for visuals and facts
-      const search = await askWebIntelligence(`Visuals and key facts for presentation: ${topic}`);
-      webContext = `\n\n[Verified Research Data]:\n${search.text}\n`;
-      
-      // Collect images if available to enhance slides
-      if (search.images && Array.isArray(search.images)) {
-        relevantImages = search.images.map(img => img.url).filter(url => url);
-      }
-    } catch (e) {
-      console.warn("PPT Generation: Web research failed, proceeding with internal knowledge.");
-    }
-  }
-
-  // 2. STRUCTURING PHASE (PUTER)
-  const prompt = `
-    Role: Professional Presentation Architect.
-    Task: Create a structured outline for a PowerPoint presentation.
+  // Step 1: Brain (Puter) decides structure
+  const structurePrompt = `
+    Mode: Presentation Architect.
     Topic: "${topic}"
-    Target Slide Count: ${numSlides}
-    
-    ${webContext}
-    
-    Instructions:
-    - Return a valid JSON array of objects.
-    - Schema: [{"title": "Slide Title", "bulletPoints": ["Point 1", "Point 2", "Point 3"]}]
-    - Ensure logical flow and educational depth.
-    - Do NOT output markdown code blocks. Just raw JSON string.
+    Target: ${numSlides} slides.
+    Task: Create a logical flow for a presentation.
+    Return a JSON array of slide objects: [{"title": "...", "bulletPoints": ["...", "..."], "imageQuery": "short search term for an image for this slide"}]
+    Rules: Bullet points should be concise. Max 5 per slide.
   `;
-  
-  const rawContent = await callPuter(prompt, 'doc_generation');
-  
-  // 3. CONSTRUCTION PHASE
+
   try {
-    const jsonStr = rawContent.replace(/```json|```/g, '').trim();
+    const rawStructure = await callNeuralBrain(structurePrompt, 'system_architect');
+    const jsonStr = rawStructure.replace(/```json|```/g, '').trim();
     let slidesData: SlideData[] = [];
-    try {
-        slidesData = JSON.parse(jsonStr);
-    } catch (parseError) {
-        // Fallback: try to find array in text
-        const match = jsonStr.match(/\[.*\]/s);
-        if (match) slidesData = JSON.parse(match[0]);
-        else throw new Error("Invalid JSON structure");
-    }
     
+    // Find JSON array in the response
+    const match = jsonStr.match(/\[.*\]/s);
+    if (match) {
+      slidesData = JSON.parse(match[0]);
+    } else {
+      throw new Error("Structure logic failed to return valid JSON");
+    }
+
+    // Step 2: Auxiliary for images and data if requested
+    if (includeWebData) {
+      for (const slide of slidesData) {
+        try {
+          const search = await askWebIntelligence(slide.imageQuery || slide.title);
+          if (search.images && search.images.length > 0) {
+            slideImages.push(search.images[0].url);
+          } else {
+            slideImages.push(""); // Placeholder if no image found
+          }
+        } catch (e) {
+          slideImages.push("");
+        }
+      }
+    }
+
+    // Step 3: Finalize (PptxGenJS)
     // @ts-ignore
     const pptx = new PptxGenJS();
     const isArabic = /[\u0600-\u06FF]/.test(topic);
-    pptx.rtl = isArabic;
-    
+    pptx.rtl = isAr();
+
+    function isAr() {
+      return document.documentElement.lang === 'ar' || isArabic;
+    }
+
     slidesData.forEach((data, index) => {
       const slide = pptx.addSlide();
       
-      // 1. Title
+      // Background / Layout
+      slide.background = { fill: 'F8FAFC' };
+
+      // Title
       slide.addText(data.title, { 
-        x: 0.5, y: 0.3, w: '90%', h: 0.8, 
-        fontSize: 28, bold: true, color: '1E293B',
-        align: isArabic ? pptx.AlignH.right : pptx.AlignH.left,
-        fontFace: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
+        x: 0.5, y: 0.5, w: '90%', fontSize: 32, bold: true, color: '0F172A',
+        align: isAr() ? 'right' : 'left',
+        fontFace: isAr() ? 'IBM Plex Sans Arabic' : 'Inter'
       });
 
-      // 2. Bullet Points (Layout adapts if image exists)
-      const hasImage = relevantImages.length > 0;
+      const imageUrl = slideImages[index];
+      const hasImage = !!imageUrl;
+
+      // Content
       slide.addText(data.bulletPoints.join('\n\n'), { 
-        x: 0.5, y: 1.2, 
-        w: hasImage ? '55%' : '90%', 
-        h: 4.2, 
-        fontSize: 16, color: '475569',
-        bullet: true,
-        align: isArabic ? pptx.AlignH.right : pptx.AlignH.left,
-        fontFace: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
+        x: 0.5, y: 1.5, w: hasImage ? '50%' : '90%', fontSize: 18, color: '334155',
+        bullet: true, align: isAr() ? 'right' : 'left',
+        fontFace: isAr() ? 'IBM Plex Sans Arabic' : 'Inter'
       });
 
-      // 3. Image Integration (Rotates through found images)
+      // Integrated Image
       if (hasImage) {
-          const imgUrl = relevantImages[index % relevantImages.length];
-          // Simple layout: Image on the right
-          slide.addImage({ 
-              path: imgUrl, 
-              x: '62%', y: 1.2, w: '33%', h: 3 
-          });
+        slide.addImage({ 
+          path: imageUrl, 
+          x: '58%', y: 1.5, w: '38%', h: 3.5,
+          rounding: true
+        });
       }
     });
 
-    pptx.writeFile({ fileName: `TeacherAI_${topic.replace(/\s+/g, '_')}.pptx` });
+    pptx.writeFile({ fileName: `TeacherAI_Presentation_${topic.replace(/\s+/g, '_')}.pptx` });
   } catch (e) {
     console.error("PPT Generation Error:", e);
-    throw new Error("Teacher AI Brain could not parse presentation structure.");
+    throw new Error("PowerPoint Neural Generation Failed.");
   }
 }
 
 /**
- * GENERATE WORD DOC (DOCX)
- * Flow:
- * 1. Puter analyzes topic.
- * 2. If includeWebData: Calls SerpAPI for in-depth research.
- * 3. Puter writes academic content.
- * 4. Docx Packer builds the file.
+ * GENERATE WORD DOC (DOCX) - DOCUMENT & PPT MODE
  */
 export async function generateDOC(topic: string, wordCount: number, includeWebData: boolean) {
-  // 1. RESEARCH PHASE (SERPAPI)
-  let webContext = "";
+  let webData: any = null;
+  
+  // Step 1: Auxiliary (Search Discovery) if needed
   if (includeWebData) {
-    try {
-        const search = await askWebIntelligence(`In-depth research and citations for: ${topic}`);
-        webContext = `\n\n[Research Data (SerpAPI)]:\n${search.text}\n\n[Reference Links]:\n${search.links.map(l => l.url).join(', ')}`;
-    } catch (e) {
-        console.warn("DOC Generation: Web research failed.");
-    }
+    webData = await askWebIntelligence(topic);
   }
 
-  // 2. WRITING PHASE (PUTER)
+  // Step 2: Brain (Puter) Content Generation
   const prompt = `
-    Role: Academic Researcher & Writer.
-    Task: Write a comprehensive document.
+    Role: Professional Academic Writer.
     Topic: "${topic}"
-    Target Length: Approx ${wordCount} words.
-    
-    ${webContext}
-    
-    Instructions:
-    - Use clear headings (# Heading) and subheadings (## Subheading).
-    - Write structured, academic paragraphs.
-    - If links are provided in research, cite them at the end.
-    - Do not use markdown code blocks for the whole text, just plain text with markdown-style headers.
+    Length: Approximately ${wordCount} words.
+    Instruction: Write a structured document with clear headings (H1, H2), detailed paragraphs, and lists.
+    ${webData ? `Integrated Research Facts: ${webData.text}` : ''}
+    Output formatting: Use markdown headers like # and ##.
   `;
-  
-  const content = await callPuter(prompt, 'doc_generation');
-  
-  // 3. CONSTRUCTION PHASE
+
+  const content = await callNeuralBrain(prompt, 'academic_writer');
+
+  // Step 3: Finalize (Docx)
   // @ts-ignore
   const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
   const isArabic = /[\u0600-\u06FF]/.test(topic);
 
-  const docChildren: any[] = [
-    new Paragraph({
-      text: topic,
-      heading: HeadingLevel.HEADING_1,
-      alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      spacing: { after: 400 },
-      bidirectional: isArabic
-    })
-  ];
+  const docChildren: any[] = [];
+
+  // Title
+  docChildren.push(new Paragraph({
+    text: topic,
+    heading: HeadingLevel.HEADING_1,
+    alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+    bidirectional: isArabic,
+    spacing: { after: 400 }
+  }));
 
   const lines = content.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
-    // Detect Headers
-    let headingLevel = undefined;
-    let text = trimmed;
-    
-    if (trimmed.startsWith('# ')) {
-        headingLevel = HeadingLevel.HEADING_1;
-        text = trimmed.replace('# ', '');
-    } else if (trimmed.startsWith('## ')) {
-        headingLevel = HeadingLevel.HEADING_2;
-        text = trimmed.replace('## ', '');
-    } else if (trimmed.startsWith('### ')) {
-        headingLevel = HeadingLevel.HEADING_3;
-        text = trimmed.replace('### ', '');
-    }
 
+    if (trimmed.startsWith('# ')) {
+      docChildren.push(new Paragraph({
+        text: trimmed.replace('# ', ''),
+        heading: HeadingLevel.HEADING_1,
+        alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: isArabic,
+        spacing: { before: 400, after: 200 }
+      }));
+    } else if (trimmed.startsWith('## ')) {
+      docChildren.push(new Paragraph({
+        text: trimmed.replace('## ', ''),
+        heading: HeadingLevel.HEADING_2,
+        alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: isArabic,
+        spacing: { before: 300, after: 150 }
+      }));
+    } else {
+      docChildren.push(new Paragraph({
+        children: [new TextRun({ 
+          text: trimmed, 
+          size: 24,
+          font: isArabic ? 'IBM Plex Sans Arabic' : 'Inter'
+        })],
+        alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: isArabic,
+        spacing: { after: 200 }
+      }));
+    }
+  }
+
+  // Add sources if available
+  if (webData && webData.links && webData.links.length > 0) {
     docChildren.push(new Paragraph({
-      children: [new TextRun({
-        text: text,
-        bold: !!headingLevel,
-        size: headingLevel ? 32 : 24,
-        font: isArabic ? 'IBM Plex Sans Arabic' : 'Arial'
-      })],
-      heading: headingLevel,
+      text: isArabic ? "المصادر والمراجع" : "References & Sources",
+      heading: HeadingLevel.HEADING_2,
       alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      spacing: { after: 200 },
-      bidirectional: isArabic
+      bidirectional: isArabic,
+      spacing: { before: 600, after: 200 }
     }));
+
+    webData.links.forEach((link: any) => {
+      docChildren.push(new Paragraph({
+        children: [
+          new TextRun({ text: `${link.title}: `, bold: true, size: 20 }),
+          new TextRun({ text: link.url, color: '0000FF', size: 20 })
+        ],
+        alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: isArabic
+      }));
+    });
   }
 
   const doc = new Document({
-    sections: [{ properties: { type: 'nextPage' }, children: docChildren }],
+    sections: [{
+      properties: {},
+      children: docChildren,
+    }],
   });
 
   const blob = await Packer.toBlob(doc);
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `TeacherAI_${topic.replace(/\s+/g, '_')}.docx`;
+  link.download = `TeacherAI_Document_${topic.replace(/\s+/g, '_')}.docx`;
   link.click();
 }

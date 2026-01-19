@@ -1,8 +1,8 @@
+
 {
-  "name": "Teacher AI FINAL",
-  "description": "A premium, modern, and powerful educational platform featuring AI-powered chat, homework assistance, professional writing tools, web builder, and file generation.",
+  "name": "Teacher AI - Smart Core",
+  "description": "Educational platform powered by Puter.ai, DeepAI, and SerpAPI. Advanced AI Logic.",
   "requestFramePermissions": [
-    "camera",
     "microphone"
   ]
 }
