@@ -16,7 +16,8 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  ShieldAlert
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 import { API_KEYS, secureStorage } from '../services/aiService';
 
@@ -145,15 +146,17 @@ const SettingsView: React.FC = () => {
     infra: 'نظام Teacher AI',
     lang: 'لغة الواجهة',
     ready: 'النظام جاهز',
-    desc: 'منطقة الإدارة المؤمنة. لإضافة أو تعديل مفاتيح API، يجب عليك فتح القفل أولاً.',
+    desc: 'منطقة الإدارة المؤمنة. المفاتيح المخزنة هنا تعمل على هذا الجهاز فقط. لجعل المفاتيح عامة لكل المستخدمين، قم بإضافتها في ملف الكود المصدر (GLOBAL_SYSTEM_KEYS).',
     keys: 'محفظة المفاتيح (مشفرة)',
     missing: 'مفقود',
     active: 'آمن',
+    system: 'نظام',
+    local: 'محلي',
     save: 'حفظ التغييرات',
     saving: 'جاري الحفظ...',
     manualInput: 'تعديل',
     enterKey: 'الصق مفتاح API السري هنا...',
-    saveKey: 'تشفير وحفظ',
+    saveKey: 'تشفير وحفظ محلياً',
     cancel: 'إلغاء',
     lockedTitle: 'الإعدادات مقفلة',
     lockedDesc: 'هذه المنطقة محمية. يرجى إدخال كلمة مرور المسؤول للوصول إلى المفاتيح.',
@@ -163,15 +166,17 @@ const SettingsView: React.FC = () => {
     infra: 'Teacher AI System',
     lang: 'Interface Language',
     ready: 'System Ready',
-    desc: 'Secured Admin Area. To add or edit API keys, you must unlock this section first.',
+    desc: 'Secured Admin Area. Keys stored here work on THIS DEVICE ONLY. To enable keys for all users, add them to the source code (GLOBAL_SYSTEM_KEYS).',
     keys: 'Key Vault (Encrypted)',
     missing: 'MISSING',
     active: 'SECURE',
+    system: 'SYSTEM',
+    local: 'LOCAL',
     save: 'Save Changes',
     saving: 'Saving...',
     manualInput: 'Edit',
     enterKey: 'Paste secret API Key here...',
-    saveKey: 'Encrypt & Save',
+    saveKey: 'Encrypt & Save Locally',
     cancel: 'Cancel',
     lockedTitle: 'Settings Locked',
     lockedDesc: 'This area is protected. Please enter the Admin Password to access keys.',
@@ -238,7 +243,7 @@ const SettingsView: React.FC = () => {
             {isAdminUnlocked ? <Unlock className="w-6 h-6 text-emerald-400" /> : <Lock className="w-6 h-6 text-blue-400" />}
             <h3 className="text-2xl font-black text-white uppercase">{t.keys}</h3>
           </div>
-          <p className="text-slate-500 text-sm mb-10 relative z-10">{t.desc}</p>
+          <p className="text-slate-500 text-sm mb-10 relative z-10 leading-relaxed">{t.desc}</p>
 
           {!isAdminUnlocked ? (
             // LOCKED STATE
@@ -277,79 +282,83 @@ const SettingsView: React.FC = () => {
           ) : (
             // UNLOCKED STATE
             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {Object.keys(statuses).map((name) => (
-                <div key={name} className={`flex flex-col p-4 bg-black/40 border rounded-2xl transition-all ${statuses[name] === 'success' ? 'border-emerald-500/40' : statuses[name] === 'missing' ? 'border-amber-500/20' : 'border-white/5'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${statuses[name] === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-500'}`}>
-                        {statuses[name] === 'success' ? <ShieldCheck className="w-4 h-4" /> : <Server className="w-4 h-4" />}
-                      </div>
-                      <div className="flex flex-col">
-                        <h4 className="font-black text-white text-[11px] tracking-tight">{name.replace(/_/g, ' ')}</h4>
-                        {manualKeys[name] ? (
-                          <span className="text-[9px] text-emerald-500 font-mono flex items-center gap-1">
-                             ●●●●●●●●●
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {statuses[name] === 'success' ? <span className="text-[10px] text-emerald-500 font-bold tracking-widest">{t.active}</span> : null}
-                      {statuses[name] === 'missing' ? <span className="text-[10px] text-amber-500 font-bold tracking-widest">{t.missing}</span> : null}
-                      
-                      {statuses[name] === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <AlertCircle className={`w-5 h-5 ${statuses[name] === 'missing' ? 'text-amber-500' : 'text-slate-500'}`} />}
-                      
-                      <button onClick={() => setEditingKey(name)} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" title={t.manualInput}>
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      {manualKeys[name] && (
-                         <button onClick={() => handleClearKey(name)} className="p-2 hover:bg-red-500/10 rounded-lg transition-colors text-slate-400 hover:text-red-400">
-                           <X className="w-3.5 h-3.5" />
-                         </button>
-                      )}
-                    </div>
-                  </div>
+              {Object.keys(statuses).map((name) => {
+                const isManual = !!manualKeys[name];
+                const isSystem = statuses[name] === 'success' && !isManual;
 
-                  {/* Secure Edit Mode */}
-                  {editingKey === name && (
-                    <div className="mt-4 pt-4 border-t border-white/5 flex gap-2 animate-in slide-in-from-top-2 relative">
-                      <div className="flex-1 relative">
-                         <input 
-                          type={showKey === name ? "text" : "password"}
-                          placeholder={t.enterKey}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleManualKeySave(name, (e.target as HTMLInputElement).value);
-                          }}
-                        />
+                return (
+                  <div key={name} className={`flex flex-col p-4 bg-black/40 border rounded-2xl transition-all ${statuses[name] === 'success' ? 'border-emerald-500/40' : statuses[name] === 'missing' ? 'border-amber-500/20' : 'border-white/5'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${statuses[name] === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-500'}`}>
+                          {statuses[name] === 'success' ? <ShieldCheck className="w-4 h-4" /> : <Server className="w-4 h-4" />}
+                        </div>
+                        <div className="flex flex-col">
+                          <h4 className="font-black text-white text-[11px] tracking-tight">{name.replace(/_/g, ' ')}</h4>
+                          <div className="flex items-center gap-2">
+                            {isSystem && <span className="text-[9px] text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded flex items-center gap-1"><Database className="w-2.5 h-2.5" /> {t.system}</span>}
+                            {isManual && <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center gap-1"><Key className="w-2.5 h-2.5" /> {t.local}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {statuses[name] === 'success' ? <span className="text-[10px] text-emerald-500 font-bold tracking-widest">{t.active}</span> : null}
+                        {statuses[name] === 'missing' ? <span className="text-[10px] text-amber-500 font-bold tracking-widest">{t.missing}</span> : null}
+                        
+                        {statuses[name] === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <AlertCircle className={`w-5 h-5 ${statuses[name] === 'missing' ? 'text-amber-500' : 'text-slate-500'}`} />}
+                        
+                        <button onClick={() => setEditingKey(name)} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" title={t.manualInput}>
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        {manualKeys[name] && (
+                           <button onClick={() => handleClearKey(name)} className="p-2 hover:bg-red-500/10 rounded-lg transition-colors text-slate-400 hover:text-red-400">
+                             <X className="w-3.5 h-3.5" />
+                           </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Secure Edit Mode */}
+                    {editingKey === name && (
+                      <div className="mt-4 pt-4 border-t border-white/5 flex gap-2 animate-in slide-in-from-top-2 relative">
+                        <div className="flex-1 relative">
+                           <input 
+                            type={showKey === name ? "text" : "password"}
+                            placeholder={t.enterKey}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleManualKeySave(name, (e.target as HTMLInputElement).value);
+                            }}
+                          />
+                          <button 
+                            onClick={() => setShowKey(showKey === name ? null : name)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                          >
+                            {showKey === name ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          </button>
+                        </div>
+                        
                         <button 
-                          onClick={() => setShowKey(showKey === name ? null : name)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                          onClick={() => setEditingKey(null)}
+                          className="px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-white"
                         >
-                          {showKey === name ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          {t.cancel}
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            const input = (e.currentTarget.previousElementSibling?.previousElementSibling?.querySelector('input') as HTMLInputElement);
+                            handleManualKeySave(name, input.value);
+                          }}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-xl flex items-center gap-2"
+                        >
+                          <Lock className="w-3 h-3" />
+                          {t.saveKey}
                         </button>
                       </div>
-                      
-                      <button 
-                        onClick={() => setEditingKey(null)}
-                        className="px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-white"
-                      >
-                        {t.cancel}
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          const input = (e.currentTarget.previousElementSibling?.previousElementSibling?.querySelector('input') as HTMLInputElement);
-                          handleManualKeySave(name, input.value);
-                        }}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-xl flex items-center gap-2"
-                      >
-                        <Lock className="w-3 h-3" />
-                        {t.saveKey}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

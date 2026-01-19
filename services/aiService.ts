@@ -3,25 +3,31 @@
  * ==================================================
  * TEACHER AI - NEURAL ENGINE SERVICE
  * ==================================================
- * ORCHESTRATOR ROLES:
- * 1. PUTER (The Brain) - Reasoning, Homework, Chat, Doc Structuring, Intent Analysis
- * 2. OCR (The Eyes) - Text Extraction (Via Puter Vision)
- * 3. SERPAPI (The Researcher) - Web Data (Invoked only by Puter's decision)
- * 4. ELEVENLABS (The Voice) - TTS/STT
- * 5. QROQ (Web Builder) - Coding
- * 6. NANO BANANA (Images) - Visuals
- * 7. OPENAI (Grammar) - Arabic Parsing Only
  */
 
 // Declare Puter global from script tag
 declare const puter: any;
 
 // ============================================================================
-// SECURITY & KEY MANAGEMENT (ADVANCED)
+// 👇👇👇 GLOBAL API KEYS AREA - منطقة المفاتيح العامة للنظام 👇👇👇
+// ============================================================================
+// تعليمات:
+// ضع المفاتيح داخل علامات التنصيص "" في الأسفل.
+// هذه المفاتيح ستعمل عند أي شخص يفتح الموقع (الطلاب، المعلمين، الزوار).
 // ============================================================================
 
-// Static Salt for XOR Encryption
-// This makes the stored keys unreadable even if someone tries to base64 decode them directly.
+const GLOBAL_SYSTEM_KEYS = {
+  OPENAI: "",       // 1. ضع مفتاح OpenAI هنا (للقواعد والإعراب)
+  GROQ: "",         // 2. ضع مفتاح Groq هنا (لبرمجة المواقع)
+  ELEVEN_LABS: "",  // 3. ضع مفتاح ElevenLabs هنا (للأصوات الاحترافية)
+  SERPAPI: "",      // 4. ضع مفتاح SerpAPI هنا (للبحث ومحرك Google)
+  NANO_BANANA: ""   // 5. ضع مفتاح Nano Banana هنا (لتوليد الصور)
+};
+
+// ============================================================================
+// SECURITY & KEY MANAGEMENT
+// ============================================================================
+
 const ENCRYPTION_SALT = "TEACHER_AI_SECURE_SALT_V99";
 
 const xorCipher = (text: string): string => {
@@ -37,9 +43,7 @@ export const secureStorage = {
   save: (key: string, value: string) => {
     if (!value) return;
     try {
-      // 1. XOR Encrypt with Salt
       const encrypted = xorCipher(value);
-      // 2. Base64 Encode to make it storage-safe
       const safeString = btoa(encrypted);
       localStorage.setItem(key, `xor_${safeString}`);
     } catch (e) {
@@ -50,20 +54,15 @@ export const secureStorage = {
     try {
       const raw = localStorage.getItem(key);
       if (!raw) return '';
-      
-      // Handle new XOR encryption
       if (raw.startsWith('xor_')) {
         const base64Part = raw.substring(4);
         const decoded = atob(base64Part);
-        return xorCipher(decoded); // XOR is reversible with the same function
+        return xorCipher(decoded);
       }
-      
-      // Fallback for older Base64 keys (migration path)
       if (raw.startsWith('enc_')) {
         return atob(raw.substring(4));
       }
-      
-      return raw; // Fallback for plain text
+      return raw;
     } catch (e) {
       return '';
     }
@@ -73,8 +72,12 @@ export const secureStorage = {
   }
 };
 
-const getKey = (storageKey: string, envVite: string, envReact: string): string => {
-  // 1. Check Secured LocalStorage
+// Priority: 
+// 1. LocalStorage (User Override - Admin only)
+// 2. Vite Env Vars (Deployment)
+// 3. GLOBAL_SYSTEM_KEYS (Hardcoded for everyone)
+const getKey = (storageKey: string, envVite: string, envReact: string, globalKey: keyof typeof GLOBAL_SYSTEM_KEYS): string => {
+  // 1. Check Secured LocalStorage (Admin Override)
   const local = secureStorage.get(storageKey);
   if (local) return local.trim();
 
@@ -92,16 +95,21 @@ const getKey = (storageKey: string, envVite: string, envReact: string): string =
     return process.env[envReact] || process.env[envVite.replace('VITE_', '')] || '';
   }
 
+  // 4. Check Hardcoded Global Keys
+  if (GLOBAL_SYSTEM_KEYS[globalKey]) {
+    return GLOBAL_SYSTEM_KEYS[globalKey];
+  }
+
   return '';
 };
 
 // EXPORTED API KEYS OBJECT
 export const API_KEYS = {
-  get OPENAI() { return getKey('teacher_key_openai', 'VITE_OPENAI_API_KEY', 'REACT_APP_OPENAI_API_KEY'); },
-  get GROQ() { return getKey('teacher_key_groq', 'VITE_GROQ_API_KEY', 'REACT_APP_GROQ_API_KEY'); },
-  get ELEVEN_LABS() { return getKey('teacher_key_eleven', 'VITE_ELEVEN_LABS_API_KEY', 'REACT_APP_ELEVEN_LABS_API_KEY'); },
-  get SERPAPI() { return getKey('teacher_key_serp', 'VITE_SERPAPI_API_KEY', 'REACT_APP_SERPAPI_API_KEY'); },
-  get NANO_BANANA() { return getKey('teacher_key_nano', 'VITE_NANO_BANANA_KEY', 'REACT_APP_NANO_BANANA_KEY'); }
+  get OPENAI() { return getKey('teacher_key_openai', 'VITE_OPENAI_API_KEY', 'REACT_APP_OPENAI_API_KEY', 'OPENAI'); },
+  get GROQ() { return getKey('teacher_key_groq', 'VITE_GROQ_API_KEY', 'REACT_APP_GROQ_API_KEY', 'GROQ'); },
+  get ELEVEN_LABS() { return getKey('teacher_key_eleven', 'VITE_ELEVEN_LABS_API_KEY', 'REACT_APP_ELEVEN_LABS_API_KEY', 'ELEVEN_LABS'); },
+  get SERPAPI() { return getKey('teacher_key_serp', 'VITE_SERPAPI_API_KEY', 'REACT_APP_SERPAPI_API_KEY', 'SERPAPI'); },
+  get NANO_BANANA() { return getKey('teacher_key_nano', 'VITE_NANO_BANANA_KEY', 'REACT_APP_NANO_BANANA_KEY', 'NANO_BANANA'); }
 };
 
 const isAr = () => document.documentElement.lang === 'ar';
@@ -216,17 +224,30 @@ async function callElevenLabsAPI(text: string, voiceId: string = "21m00Tcm4TlvDq
   }
 }
 
-// SERPAPI - RESEARCHER ONLY
+// SERPAPI - RESEARCHER ONLY (Improved Proxy)
 async function callSerpAPI(query: string) {
   try {
-    const response = await fetch(`https://serpapi.com/search.json?q=${encodeURIComponent(query)}&api_key=${API_KEYS.SERPAPI}`);
-    const data = await response.json();
+    // Use corsproxy.io as a more reliable alternative for JSON responses
+    const targetUrl = `https://serpapi.com/search.json?q=${encodeURIComponent(query)}&api_key=${API_KEYS.SERPAPI}`;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
     
+    const response = await fetch(proxyUrl);
+    
+    if (!response.ok) {
+        throw new Error(`SerpAPI Request Failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+       console.error("SerpAPI returned error:", data.error);
+       throw new Error(data.error);
+    }
+
     const organic = data.organic_results?.slice(0, 4) || [];
     const text = organic.map((r: any) => `Title: ${r.title}\nSnippet: ${r.snippet}\nLink: ${r.link}`).join('\n\n');
     const links = organic.map((r: any) => ({ title: r.title, url: r.link, snippet: r.snippet }));
     
-    // Extract simple images if available in knowledge graph or generic results
     const images = data.inline_images?.slice(0, 4).map((img: any) => ({
       url: img.thumbnail,
       title: img.title || "Image Result"
@@ -234,8 +255,9 @@ async function callSerpAPI(query: string) {
     
     return { text, links, images };
   } catch (e) {
-    console.error("SerpAPI Error", e);
-    throw e;
+    console.error("SerpAPI/Proxy Error", e);
+    // Silent fallback to avoid crashing UI
+    return { text: "", links: [], images: [] };
   }
 }
 
@@ -252,12 +274,10 @@ function checkPuter() {
 
 async function callPuterBrain(userInput: string, systemPrompt: string, imageBase64?: string): Promise<string> {
   checkPuter();
-  // Combine System Prompt and User Input as Puter.js typically takes a single chat history or string
   const fullPrompt = `${systemPrompt}\n\n================\nUSER REQUEST: ${userInput}`;
   try {
     let response;
     if (imageBase64) {
-      // Vision capability of the Brain
       response = await puter.ai.chat(fullPrompt, imageBase64);
     } else {
       response = await puter.ai.chat(fullPrompt);
@@ -287,7 +307,6 @@ function parsePuterResponse(response: any): string {
 export async function callPuter(userInput: string, mode: AIMode = 'teacher_ai', imageBase64?: string): Promise<string> {
   let systemInstruction = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.teacher_ai;
 
-  // GLOBAL OVERRIDE: If UI is in Arabic, force AI to respond in Arabic
   if (isAr()) {
     systemInstruction += `\n\nIMPORTANT INSTRUCTION:\nThe user interface is in Arabic Mode. You MUST reply in Arabic language ONLY, regardless of the user's input language. Be professional and educational in Arabic.`;
   }
@@ -303,27 +322,20 @@ export async function callPuter(userInput: string, mode: AIMode = 'teacher_ai', 
   // RULE 8: OPENAI = ARABIC GRAMMAR (STRICT)
   if (mode === 'grammar_expert') {
     if (API_KEYS.OPENAI) {
-      // OpenAI does NOT do image/vision here, strictly text parsing
       return await callOpenAIAPI(userInput, systemInstruction);
     }
     console.warn("OpenAI Key missing. Brain (Puter) will attempt parsing.");
   }
 
-  // RULE 1: PUTER = BRAIN (Default for Chat, Voice, Docs, Homework)
-  // Also fallback for above if keys are missing
+  // RULE 1: PUTER = BRAIN
   return await callPuterBrain(userInput, systemInstruction, imageBase64);
 }
 
-// ==================================================
-// WRITER AGENT
-// ==================================================
 export async function runWriterAgent(mode: 'grammar' | 'correction' | 'paragraph' | 'arabic', text: string): Promise<string> {
-  // 1. Arabic Grammar / Parsing -> OpenAI
   if (mode === 'arabic') {
     return await callPuter(text, 'grammar_expert');
   }
 
-  // 2. English Text Tools -> Puter
   let prompt = "";
   switch (mode) {
     case 'grammar':
@@ -340,22 +352,14 @@ export async function runWriterAgent(mode: 'grammar' | 'correction' | 'paragraph
   return await callPuter(prompt, 'teacher_ai');
 }
 
-// ==================================================
-// HOMEWORK AGENT
-// ==================================================
 export async function solveHomework(userQuestion: string, subject: string, style: string, imageBase64?: string): Promise<string> {
-  console.log("Homework Agent: Started");
-  
-  // STEP 1: OCR / TEXT EXTRACTION
   let problemText = userQuestion;
   if (imageBase64) {
-    console.log("Homework Agent: OCR Phase");
     const ocrPrompt = `TASK: OCR EXTRACTION.\nINSTRUCTION: Look at the provided image. Extract all visible text exactly as is.\nDo not solve the problem yet. Just return the extracted text.`;
     const extractedText = await callPuter(ocrPrompt, 'teacher_ai', imageBase64);
     problemText = `${userQuestion}\n\n[OCR EXTRACTED CONTEXT]:\n${extractedText}`;
   }
 
-  // STEP 2: INTENT ANALYSIS
   let needsSearch = false;
   if (API_KEYS.SERPAPI) {
     const analysisPrompt = `System: You are the Homework Orchestrator.\nTask: Analyze this homework request: "${problemText}".\nDoes solving this problem require fetching real-time data, news, specific facts, or external web research?\nReply ONLY with "YES" or "NO".`;
@@ -363,36 +367,25 @@ export async function solveHomework(userQuestion: string, subject: string, style
     needsSearch = decision.trim().toUpperCase().includes('YES');
   }
 
-  // STEP 3 & 4: EXECUTION (SEARCH OR SOLVE)
   if (needsSearch) {
-    console.log("Homework Agent: Research Phase");
     const research = await askWebIntelligence(problemText);
     const synthesisPrompt = `Role: Professional Tutor.\nSubject: ${subject}\nStyle: ${style}\nTask: Solve the homework problem using the provided research data.\n\nProblem: "${problemText}"\n\nResearch Data:\n${research.text}\n\nInstructions: Provide a clear, accurate, and structured step-by-step solution.`;
     return await callPuter(synthesisPrompt, 'teacher_ai');
   } else {
-    console.log("Homework Agent: Internal Solving Phase");
     const solverPrompt = `Role: Professional Tutor.\nSubject: ${subject}\nStyle: ${style}\nTask: Solve the following problem step-by-step.\n\nProblem: "${problemText}"\n\nInstructions: Break down the logic. Explain the reasoning. Provide the final answer clearly.`;
     return await callPuter(solverPrompt, 'teacher_ai');
   }
 }
 
-// ==================================================
-// CHAT AGENT
-// ==================================================
 export async function runChatAgent(userMessage: string, imageBase64?: string): Promise<string> {
-  console.log("Chat Agent: Started");
-
   let messageContext = userMessage;
 
-  // STEP 1: OCR
   if (imageBase64) {
-    console.log("Chat Agent: OCR Phase");
     const ocrPrompt = `TASK: OCR EXTRACTION.\nINSTRUCTION: Look at the provided image. Extract all visible text exactly as is.\nDo not answer the user yet. Just return the extracted text.`;
     const extractedText = await callPuter(ocrPrompt, 'teacher_ai', imageBase64);
     messageContext = `User Message: "${userMessage}"\n\n[OCR EXTRACTED TEXT FROM IMAGE]:\n${extractedText}`;
   }
 
-  // STEP 2: INTENT ANALYSIS
   let needsSearch = false;
   if (API_KEYS.SERPAPI) {
     const analysisPrompt = `System: You are the Chat Orchestrator.\nTask: Analyze this user input: "${messageContext}".\nDoes it require fetching real-time data, news, specific facts, or external web research to answer accurately?\nReply ONLY with "YES" or "NO".`;
@@ -400,21 +393,14 @@ export async function runChatAgent(userMessage: string, imageBase64?: string): P
     needsSearch = decision.trim().toUpperCase().includes('YES');
   }
 
-  // STEP 3 & 4: EXECUTION
   if (needsSearch) {
-    console.log("Chat Agent: Research Phase");
     const research = await askWebIntelligence(messageContext);
     const synthesisPrompt = `System: You are Teacher AI.\nContext: ${messageContext}\n\nExternal Knowledge:\n${research.text}\n\nInstruction: Answer the user's message clearly using the external knowledge provided.`;
     return await callPuter(synthesisPrompt, 'teacher_ai');
   } else {
-    console.log("Chat Agent: Internal Knowledge Phase");
     return await callPuter(messageContext, 'teacher_ai');
   }
 }
-
-// ==================================================
-// OTHER SERVICES
-// ==================================================
 
 export async function askTeacher(prompt: string, imageBase64?: string): Promise<string> {
   return callPuter(prompt, 'teacher_ai', imageBase64);
@@ -431,11 +417,14 @@ export async function askWebIntelligence(query: string): Promise<{ text: string,
 
   try {
     const researchData = await callSerpAPI(query);
+    if (!researchData || (!researchData.text && researchData.links.length === 0)) {
+        throw new Error("No data received from Search");
+    }
     const brainPrompt = `Analyze the following search data and provide a comprehensive, educational answer to the user's query: "${query}".\n\nRAW RESEARCH DATA:\n${researchData.text}\n\nINSTRUCTIONS:\n- Integrate facts smoothly.\n- Be accurate and professional.\n- Cite the provided links where appropriate.`;
     const synthesis = await callPuter(brainPrompt, 'teacher_ai');
     return { text: synthesis, links: researchData.links, images: researchData.images };
   } catch (e) {
-    return { text: "Error during Neural Research.", links: [], images: [] };
+    return { text: isAr() ? "حدث خطأ أثناء الاتصال بمحرك البحث." : "Error fetching real-time data from web.", links: [], images: [] };
   }
 }
 
@@ -456,7 +445,6 @@ export async function askVoiceTeacher(prompt: string): Promise<string> {
 }
 
 export async function buildWebsite(userPrompt: string): Promise<string> {
-  console.log("Web Builder Orchestrator: Started");
   let contextData = "";
   if (API_KEYS.SERPAPI) {
     const analysisPrompt = `System: You are the Lead Architect.\nTask: Analyze this web builder request: "${userPrompt}".\nDoes it require real-time web research, news, prices, or specific real-world data to be built accurately?\nReply ONLY with "YES" or "NO".`;
