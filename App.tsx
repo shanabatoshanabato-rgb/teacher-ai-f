@@ -6,8 +6,8 @@ import ChatView from './components/ChatView';
 import VoiceView from './components/VoiceView';
 import HomeworkView from './components/HomeworkView';
 import WriterView from './components/WriterView';
-import WebBuilderView from './components/WebBuilderView';
-import ImageGenView from './components/ImageGenView';
+import TeacherUAEView from './components/TeacherUAEView';
+import IslamicHubView from './components/IslamicHubView';
 import SettingsView from './components/SettingsView';
 import FilesView from './components/FilesView';
 import WebIntelligenceView from './components/WebIntelligenceView';
@@ -23,8 +23,8 @@ const App: React.FC = () => {
       case 'voice': return <VoiceView />;
       case 'homework': return <HomeworkView />;
       case 'writer': return <WriterView />;
-      case 'web-builder': return <WebBuilderView />;
-      case 'images': return <ImageGenView />;
+      case 'teacher-uae': return <TeacherUAEView />;
+      case 'islamic-hub': return <IslamicHubView />;
       case 'settings': return <SettingsView />;
       case 'files': return <FilesView />;
       case 'web-intelligence': return <WebIntelligenceView />;
@@ -44,7 +44,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {!isChat && (
+      {activeTab !== 'voice' && activeTab !== 'teacher-uae' && (
         <div className="fixed bottom-6 right-6 z-40">
           <button 
             onClick={() => setActiveTab('voice')}

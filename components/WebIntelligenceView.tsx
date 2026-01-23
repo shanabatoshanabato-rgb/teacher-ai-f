@@ -11,11 +11,16 @@ const WebIntelligenceView: React.FC = () => {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
+    setQuery(query);
     setLoading(true);
     setResult(null);
     try {
       const res = await askWebIntelligence(query);
-      setResult(res);
+      setResult({
+        text: res.text,
+        links: res.links,
+        images: [] 
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -23,11 +28,8 @@ const WebIntelligenceView: React.FC = () => {
     }
   };
 
-  const isArabicInput = (text: string) => /[\u0600-\u06FF]/.test(text);
-
   return (
     <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 animate-in fade-in duration-700">
-      {/* Search Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-3">
           <div className="p-3 bg-blue-600/20 rounded-2xl">
@@ -38,7 +40,6 @@ const WebIntelligenceView: React.FC = () => {
         <p className="text-slate-500 font-medium text-sm md:text-lg">{isAr ? 'استنتاجات واقعية مبنية على بحث لحظي واكتشاف الويب.' : 'Fact-based reasoning powered by real-time web discovery.'}</p>
       </div>
 
-      {/* Search Bar */}
       <div className="relative max-w-3xl mx-auto group">
         <div className="absolute inset-0 bg-blue-600 blur-[40px] opacity-10 group-focus-within:opacity-20 transition-opacity"></div>
         <div className={`relative flex items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-2 transition-all hover:border-white/20 ${isAr ? 'flex-row-reverse' : ''}`}>
@@ -64,11 +65,8 @@ const WebIntelligenceView: React.FC = () => {
         </div>
       </div>
 
-      {/* Results Section */}
       {result && (
         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          
-          {/* Main Answer Card */}
           <div className="bg-[#111827]/60 border border-white/10 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl shadow-2xl overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] -z-10"></div>
             
@@ -76,7 +74,7 @@ const WebIntelligenceView: React.FC = () => {
               <div className="p-2 bg-blue-600/20 rounded-lg">
                 <BookOpen className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{isAr ? 'التوليف العصبي' : 'Neural Synthesis'}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{isAr ? 'التوليف الذكي' : 'Smart Synthesis'}</span>
             </div>
 
             <div 
@@ -87,35 +85,12 @@ const WebIntelligenceView: React.FC = () => {
             </div>
           </div>
 
-          {/* Combined Visuals and Links Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Visual Context */}
-            {result.images.length > 0 && (
-              <div className="lg:col-span-7 space-y-4">
-                <div className={`flex items-center gap-3 px-4 ${isAr ? 'flex-row-reverse' : ''}`}>
-                  <ImageIcon className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{isAr ? 'أدلة بصرية' : 'Visual Evidence'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {result.images.map((img, i) => (
-                    <div key={i} className="group relative aspect-video bg-white/5 rounded-3xl overflow-hidden border border-white/5 hover:border-blue-500/40 transition-all shadow-lg">
-                      <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                        <p className={`text-[10px] text-white font-bold truncate ${isAr ? 'text-right w-full' : ''}`}>{img.title}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Reference Sources */}
             {result.links.length > 0 && (
-              <div className={`${result.images.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-4`}>
+              <div className="lg:col-span-12 space-y-4">
                 <div className={`flex items-center gap-3 px-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                   <LinkIcon className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{isAr ? 'مصادر أكاديمية' : 'Academic Sources'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{isAr ? 'مصادر موثقة' : 'Verified Sources'}</span>
                 </div>
                 <div className="flex flex-col gap-3">
                   {result.links.map((link, i) => (

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageSquare, BookOpen, Mic, PenTool, Star, Globe, Cpu, Layout, Image as ImageIcon, Settings as SettingsIcon } from 'lucide-react';
+import { MessageSquare, BookOpen, Mic, PenTool, Star, Globe, Cpu, Layout, Library, GraduationCap, Brain, ShieldCheck } from 'lucide-react';
 import { AppTab } from '../types';
 
 interface HomeViewProps {
@@ -11,44 +11,44 @@ const HomeView: React.FC<HomeViewProps> = ({ setActiveTab }) => {
   const isAr = document.documentElement.lang === 'ar';
 
   const t = isAr ? {
-    badge: 'تيتشر AI - نظام ذكي متكامل',
-    h1: 'المعلم الذكي.',
-    h2: 'نظام تعليمي متقدم.',
-    desc: 'شريكك الذكي للتعليم والإنتاجية. المساعدة في الواجبات، بناء المواقع، والتفاعل الصوتي اللحظي عبر محركات AI متطورة.',
-    btnChat: 'ابدأ المحادثة',
-    btnSettings: 'مركز التحكم',
-    core: 'القدرات الأساسية للنظام',
-    feat1: 'شات المعلم',
-    feat1d: 'العقل المدبر للتحليل والحلول المنطقية المتقدمة.',
-    feat2: 'بناء الويب',
-    feat2d: 'تصميم وبناء مواقع كاملة بضغطة زر واحدة.',
-    feat3: 'البحث العالمي',
-    feat3d: 'اكتشاف الحقائق والبيانات اللحظية عبر الويب.',
-    feat4: 'صوت مباشر',
-    feat4d: 'تحدث مع النظام بطلاقة تامة وحلول ذكية.'
+    badge: 'TEACHER AI - العقل التعليمي المتكامل',
+    h1: 'معلمك الشامل.',
+    h2: 'قوة المعرفة.',
+    desc: 'منصة تعليمية متطورة تدمج أحدث تقنيات البحث والذكاء الشامل في مكان واحد لخدمة الطالب والباحث.',
+    btnChat: 'ابدأ التعلم الآن',
+    btnSettings: 'مركز التحكم الشامل',
+    core: 'أنظمة TEACHER AI الشاملة',
+    feat1: 'المحاور الشامل',
+    feat1d: 'نقاشات تعليمية عميقة ومنطقية.',
+    feat2: 'المنهاج الإماراتي',
+    feat2d: 'دراسة ذكية لمنهاج وزارة التربية والتعليم.',
+    feat3: 'استوديو الكتابة',
+    feat3d: 'تصحيح، إعراب، وإعادة صياغة إبداعية.',
+    feat4: 'مساعد الواجبات',
+    feat4d: 'حل وشرح المسائل عبر الصور.'
   } : {
-    badge: 'Teacher AI - Advanced Smart System',
-    h1: 'Teacher AI Engine.',
-    h2: 'Smart Learning Hub.',
-    desc: 'Your premium partner for education and creation. Homework assistance, full web construction, and real-time voice orchestration.',
-    btnChat: 'Start Chatting',
-    btnSettings: 'Control Center',
-    core: 'Core System Capabilities',
-    feat1: 'Teacher Chat',
-    feat1d: 'The primary logic brain for reasoning and analysis.',
-    feat2: 'Web Architect',
-    feat2d: 'Design and build full-scale websites instantly.',
-    feat3: 'Global Research',
-    feat3d: 'Discover real-time facts with deep search discovery.',
-    feat4: 'Voice Pipeline',
-    feat4d: 'Engage in fluent, intelligent voice conversations.'
+    badge: 'TEACHER AI - INTEGRATED MASTER CORE',
+    h1: 'TEACHER AI.',
+    h2: 'Master Logic.',
+    desc: 'An advanced educational platform integrating master search, linguistics, and engineering in one ecosystem.',
+    btnChat: 'Start Learning',
+    btnSettings: 'Master Control',
+    core: 'TEACHER AI Master Systems',
+    feat1: 'Master Tutor',
+    feat1d: 'Deep educational discussions and logic.',
+    feat2: 'UAE Curriculum',
+    feat2d: 'AI-powered study for UAE Ministry standards.',
+    feat3: 'Writer Studio',
+    feat3d: 'Correction, parsing, and creative rewriting.',
+    feat4: 'Homework AI',
+    feat4d: 'Image-based solving and explanation.'
   };
 
   const features = [
-    { id: 'chat', title: t.feat1, desc: t.feat1d, icon: MessageSquare, color: "text-blue-400", bg: "bg-blue-400/10" },
-    { id: 'web-builder', title: t.feat2, desc: t.feat2d, icon: Layout, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-    { id: 'web-intelligence', title: t.feat3, desc: t.feat3d, icon: Globe, color: "text-amber-400", bg: "bg-amber-400/10" },
-    { id: 'voice', title: t.feat4, desc: t.feat4d, icon: Mic, color: "text-purple-400", bg: "bg-purple-400/10" }
+    { id: 'chat', title: t.feat1, desc: t.feat1d, icon: GraduationCap, color: "text-blue-400", bg: "bg-blue-400/10" },
+    { id: 'teacher-uae', title: t.feat2, desc: t.feat2d, icon: ShieldCheck, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+    { id: 'writer', title: t.feat3, desc: t.feat3d, icon: PenTool, color: "text-amber-400", bg: "bg-amber-400/10" },
+    { id: 'homework', title: t.feat4, desc: t.feat4d, icon: BookOpen, color: "text-purple-400", bg: "bg-purple-400/10" }
   ];
 
   return (
@@ -65,7 +65,7 @@ const HomeView: React.FC<HomeViewProps> = ({ setActiveTab }) => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-24 w-full sm:w-auto">
-        <button onClick={() => setActiveTab('chat')} className="px-10 py-5 bg-indigo-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all hover:bg-indigo-500 active:scale-95 shadow-2xl shadow-indigo-600/20 uppercase tracking-widest text-sm">{t.btnChat} <MessageSquare className="w-5 h-5" /></button>
+        <button onClick={() => setActiveTab('chat')} className="px-10 py-5 bg-indigo-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all hover:bg-indigo-500 active:scale-95 shadow-2xl shadow-indigo-600/20 uppercase tracking-widest text-sm">{t.btnChat}</button>
         <button onClick={() => setActiveTab('settings')} className="px-10 py-5 bg-white/5 text-white font-black rounded-2xl border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest text-sm">{t.btnSettings}</button>
       </div>
 

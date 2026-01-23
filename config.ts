@@ -1,25 +1,24 @@
 
 /**
  * ============================================================================
- * 🔑 TEACHER AI - نظام إدارة المفاتيح المركزية
- * ============================================================================
- * 
- * 📢 تعليمات هامة:
- * ضع مفاتيحك هنا مرة واحدة، وستعمل تلقائياً عند جميع المستخدمين والطلاب.
- * 
+ * 🔑 TEACHER AI - CONFIGURATION (STRICT CLEAN VERSION)
  * ============================================================================
  */
 
 export const MASTER_KEYS = {
-  // 1. محرك البحث (Google Search) - من موقع serpapi.com
   SERPAPI_KEY: "",
-
-  // 2. محرك برمجة المواقع (Groq) - من موقع console.groq.com
   GROQ_API_KEY: "",
-
-  // 3. محرك الإعراب والقواعد (OpenAI) - من موقع platform.openai.com
   OPENAI_API_KEY: "",
+  ELEVEN_LABS_KEY: ""
+};
 
-  // 4. محرك الأصوات البشرية (ElevenLabs) - من موقع elevenlabs.io
-  ELEVEN_LABS_KEY: "",
+export const getKey = (keyName: keyof typeof MASTER_KEYS): string => {
+  const override = localStorage.getItem(`override_${keyName}`);
+  return (override || MASTER_KEYS[keyName] || "");
+};
+
+export const saveOverrideKey = (keyName: keyof typeof MASTER_KEYS, value: string) => {
+  if (value && value.trim()) {
+    localStorage.setItem(`override_${keyName}`, value.trim());
+  }
 };

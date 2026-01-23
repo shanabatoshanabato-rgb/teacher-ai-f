@@ -1,18 +1,7 @@
 
 import React, { useState } from 'react';
 import { 
-  MessageSquare, 
-  BookOpen, 
-  PenTool, 
-  Layout, 
-  FileText, 
-  Image as ImageIcon, 
-  Settings as SettingsIcon,
-  Sparkles,
-  Mic,
-  Menu,
-  X,
-  Globe
+  MessageSquare, BookOpen, PenTool, Layout, FileText, Settings as SettingsIcon, Sparkles, Mic, Menu, X, Globe, Library, GraduationCap, Brain, ShieldCheck
 } from 'lucide-react';
 import { AppTab } from '../types';
 
@@ -26,15 +15,14 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const isAr = document.documentElement.lang === 'ar';
 
   const navItems = [
-    { id: 'chat', label: isAr ? 'شات المعلم' : 'Teacher Chat', icon: MessageSquare },
-    { id: 'voice', label: isAr ? 'صوت مباشر' : 'Live Voice', icon: Mic },
-    { id: 'homework', label: isAr ? 'الواجبات' : 'Homework Mode', icon: BookOpen },
-    { id: 'web-intelligence', label: isAr ? 'البحث الذكي' : 'Search Intelligence', icon: Globe },
+    { id: 'chat', label: isAr ? 'المحاور الذكي' : 'Smart Chat', icon: MessageSquare },
+    { id: 'voice', label: isAr ? 'التعليم الصوتي' : 'Voice Mode', icon: Mic },
+    { id: 'teacher-uae', label: isAr ? 'منهاج الإمارات' : 'UAE Teacher AI', icon: ShieldCheck },
+    { id: 'homework', label: isAr ? 'مساعد الواجبات' : 'Homework Assistant', icon: BookOpen },
+    { id: 'islamic-hub', label: isAr ? 'المكتبة الإسلامية' : 'Islamic Hub', icon: Library },
     { id: 'writer', label: isAr ? 'استوديو الكتابة' : 'Writer Studio', icon: PenTool },
-    { id: 'web-builder', label: isAr ? 'بناء الويب' : 'Web Builder', icon: Layout },
-    { id: 'files', label: isAr ? 'ملفات' : 'Doc Factory', icon: FileText },
-    { id: 'images', label: isAr ? 'توليد الصور' : 'Image Studio', icon: ImageIcon },
-    { id: 'settings', label: isAr ? 'مركز التحكم' : 'Control Center', icon: SettingsIcon },
+    { id: 'files', label: isAr ? 'مصنع الملفات' : 'Doc Factory', icon: FileText },
+    { id: 'settings', label: isAr ? 'الإعدادات' : 'Settings', icon: SettingsIcon },
   ];
 
   const handleTabClick = (tab: AppTab) => {
@@ -51,9 +39,9 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             onClick={() => handleTabClick('home')}
           >
             <div className={`p-2 rounded-xl transition-colors ${activeTab === 'home' ? 'bg-white text-black' : 'bg-indigo-600 text-white'}`}>
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+              <GraduationCap className="w-4 h-4 md:w-5 md:h-5" />
             </div>
-            <span className="text-lg md:text-xl font-bold text-white tracking-tighter">Teacher AI</span>
+            <span className="text-lg md:text-xl font-bold text-white tracking-tighter">TEACHER AI</span>
           </div>
 
           <div className="hidden xl:flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">

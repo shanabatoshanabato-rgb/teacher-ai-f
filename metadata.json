@@ -1,8 +1,10 @@
 
 {
-  "name": "Teacher AI - Smart Core",
-  "description": "Educational platform powered by Puter.ai, DeepAI, and SerpAPI. Advanced AI Logic.",
+  "name": "TEACHER AI - Sovereign Education",
+  "description": "Unified Master Intelligence Platform powered by our Sovereign Educational Core.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "camera",
+    "geolocation"
   ]
 }

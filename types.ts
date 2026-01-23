@@ -1,11 +1,18 @@
 
-export type AppTab = 'home' | 'chat' | 'homework' | 'writer' | 'web-builder' | 'files' | 'images' | 'settings' | 'voice' | 'web-intelligence';
+export type AppTab = 'home' | 'chat' | 'homework' | 'writer' | 'teacher-uae' | 'files' | 'islamic-hub' | 'settings' | 'voice' | 'web-intelligence';
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   image?: string; // Base64 image data
+  timestamp: number;
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
   timestamp: number;
 }
 
