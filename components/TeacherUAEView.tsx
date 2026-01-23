@@ -34,9 +34,11 @@ const TeacherUAEView: React.FC = () => {
   const recognitionRef = useRef<any>(null);
 
   const grades = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  
+  // تم إضافة مادة العلوم هنا
   const subjectsList = sessionLang === 'ar' 
-    ? ['اللغة العربية', 'التربية الإسلامية', 'الرياضيات', 'الفيزياء', 'الكيمياء', 'الأحياء', 'الدراسات الاجتماعية', 'علوم الحاسوب']
-    : ['Arabic', 'Islamic Education', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Science'];
+    ? ['اللغة العربية', 'التربية الإسلامية', 'العلوم', 'الرياضيات', 'الفيزياء', 'الكيمياء', 'الأحياء', 'الدراسات الاجتماعية', 'علوم الحاسوب']
+    : ['Arabic', 'Islamic Education', 'Science', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Science'];
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -151,7 +153,6 @@ const TeacherUAEView: React.FC = () => {
       setAiResponse(res.text);
       await puterVoice(res.text);
       
-      // تحليل الرد لتحديد الحالة القادمة (بسيط جداً لأغراض التجربة)
       const text = res.text.toLowerCase();
       if (text.includes("اختبر") || text.includes("سؤال")) {
         setInteractionState('quiz_mode');
@@ -298,7 +299,6 @@ const TeacherUAEView: React.FC = () => {
                         </div>
                       </div>
                       
-                      {/* مؤشرات الحالة التفاعلية */}
                       <div className="flex justify-center gap-4 mt-6">
                         <div className="flex items-center gap-2 px-6 py-3 bg-black/30 rounded-full border border-white/5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
                           <CheckCircle2 className="w-4 h-4" />

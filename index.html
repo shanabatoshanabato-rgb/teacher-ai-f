@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TEACHER AI - Master Learning Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://js.puter.com/v2/"></script>
@@ -19,16 +19,18 @@
       font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
       overflow-x: hidden;
       transition: background-color 0.3s ease;
+      background-color: #050507;
+      -webkit-tap-highlight-color: transparent;
     }
     .gradient-bg {
-      background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent),
-                  radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.05), transparent);
+      background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.08), transparent),
+                  radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.08), transparent);
     }
     .glass {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 10, 12, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
     ::-webkit-scrollbar {
       width: 4px;
@@ -40,25 +42,38 @@
       background: rgba(255, 255, 255, 0.05);
       border-radius: 10px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
     [dir="rtl"] {
       font-family: 'IBM Plex Sans Arabic', sans-serif;
     }
-    .prose strong { color: #818cf8; font-weight: 800; }
-    
     .sidebar-transition {
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
-    /* مظهر "المقبض" لزر التوجيه */
+    /* المقبض الذكي للحافة */
     .sidebar-handle {
+      width: 12px;
+      height: 60px;
+      background: rgba(79, 70, 229, 0.2);
+      border-radius: 10px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
       transition: all 0.3s ease;
+      z-index: 100;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .sidebar-handle:hover {
-      background: rgba(79, 70, 229, 0.4);
-      width: 40px;
+      background: rgba(79, 70, 229, 0.6);
+      width: 16px;
+    }
+    @media (max-width: 1024px) {
+      .mobile-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 35;
+        backdrop-filter: blur(4px);
+      }
     }
   </style>
 <script type="importmap">
