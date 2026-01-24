@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Loader2, Radio, ShieldCheck, User, UserCircle, WifiOff } from 'lucide-react';
-import { runPuterAgent, puterVoice } from '../services/puterCore';
+import { Mic, MicOff, Loader2, Radio, ShieldCheck, User, UserCircle, WifiOff, Square } from 'lucide-react';
+import { runPuterAgent, puterVoice, stopPuterVoice } from '../services/puterCore';
 
 const VoiceView: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'thinking' | 'synthesizing'>('idle');
   
   const [selectedVoice, setSelectedVoice] = useState<string>('nova'); 
@@ -45,6 +46,7 @@ const VoiceView: React.FC = () => {
         setPhase('listening');
         setTranscript('');
         setErrorStatus(null);
+        handleStopVoice();
       };
       
       recognitionRef.current.onend = () => {
@@ -62,12 +64,18 @@ const VoiceView: React.FC = () => {
     }
   }, [sessionLang, isCurrentAr, phase]);
 
+  const handleStopVoice = () => {
+    stopPuterVoice();
+    setIsAiSpeaking(false);
+    if (phase === 'synthesizing') setPhase('idle');
+  };
+
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
       setErrorStatus(null);
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      handleStopVoice();
       
       recognitionRef.current.lang = sessionLang === 'ar' ? 'ar-SA' : 'en-US';
       try {
@@ -94,6 +102,7 @@ const VoiceView: React.FC = () => {
       );
       
       setPhase('synthesizing');
+      setIsAiSpeaking(true);
       await puterVoice(response.text, selectedVoice);
       
     } catch (e) { 
@@ -101,7 +110,6 @@ const VoiceView: React.FC = () => {
       setErrorStatus(isCurrentAr ? "فشل المعالجة" : "Processing Failed");
     } finally { 
       setIsProcessing(false); 
-      setPhase('idle'); 
     }
   };
 
@@ -122,10 +130,10 @@ const VoiceView: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-center gap-3 mb-2">
             <ShieldCheck className="w-5 h-5 text-indigo-500" />
-            <span className="text-indigo-400 font-black tracking-[0.4em] uppercase text-[10px]">Sovereign Voice Core</span>
+            <span className="text-indigo-400 font-black tracking-[0.4em] uppercase text-[10px]">Advanced Voice Core</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
-            {isCurrentAr ? 'المعلم الصوتي' : 'Voice Teacher'}
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase leading-[1.4]">
+            {isCurrentAr ? 'الوضع الصوتي' : 'Voice Mode'}
           </h1>
         </div>
 
@@ -136,7 +144,7 @@ const VoiceView: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center py-6">
+        <div className="relative flex items-center justify-center py-6 gap-6">
           <button 
             onClick={toggleListening} 
             disabled={isProcessing} 
@@ -159,6 +167,16 @@ const VoiceView: React.FC = () => {
               </>
             )}
           </button>
+
+          {isAiSpeaking && (
+             <button 
+               onClick={handleStopVoice}
+               className="absolute -right-24 md:-right-32 bottom-12 p-6 bg-red-600/20 hover:bg-red-600/40 border border-red-500/40 text-red-500 rounded-full shadow-2xl transition-all active:scale-90 group flex flex-col items-center gap-2"
+             >
+                <Square className="w-8 h-8 fill-red-500 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{isCurrentAr ? 'إيقاف' : 'STOP'}</span>
+             </button>
+          )}
         </div>
 
         <div className="w-full min-h-[160px] flex flex-col gap-4 px-4">
@@ -168,18 +186,19 @@ const VoiceView: React.FC = () => {
                   <User className="w-3 h-3" />
                   <span className="text-[8px] font-black uppercase tracking-widest">{isCurrentAr ? 'صوتك' : 'YOUR VOICE'}</span>
                </div>
-               <p className={`text-slate-200 text-lg font-medium ${isCurrentAr ? 'text-right' : 'text-left'}`} dir={isCurrentAr ? 'rtl' : 'ltr'}>
+               <p className={`text-slate-200 text-lg font-medium leading-[1.4] ${isCurrentAr ? 'text-right' : 'text-left'}`} dir={isCurrentAr ? 'rtl' : 'ltr'}>
                  {transcript}
                </p>
             </div>
           )}
 
-          {isProcessing && (
+          {(isProcessing || phase === 'synthesizing') && (
             <div className="flex justify-center items-center gap-4 py-4 animate-in fade-in">
-              <div className="flex gap-1">
-                <div className="w-2 h-8 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="w-2 h-8 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="w-2 h-8 bg-indigo-500 rounded-full animate-bounce"></div>
+              <div className="flex gap-1 items-end h-12">
+                <div className="w-2 bg-indigo-500 rounded-full animate-voice-bar-1 h-6"></div>
+                <div className="w-2 bg-indigo-500 rounded-full animate-voice-bar-2 h-10"></div>
+                <div className="w-2 bg-indigo-500 rounded-full animate-voice-bar-3 h-8"></div>
+                <div className="w-2 bg-indigo-500 rounded-full animate-voice-bar-4 h-4"></div>
               </div>
             </div>
           )}
@@ -210,6 +229,16 @@ const VoiceView: React.FC = () => {
           ))}
         </div>
       </div>
+      <style>{`
+        @keyframes voice-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 100%; }
+        }
+        .animate-voice-bar-1 { animation: voice-bar 0.6s infinite ease-in-out; }
+        .animate-voice-bar-2 { animation: voice-bar 0.8s infinite ease-in-out; }
+        .animate-voice-bar-3 { animation: voice-bar 0.7s infinite ease-in-out; }
+        .animate-voice-bar-4 { animation: voice-bar 0.9s infinite ease-in-out; }
+      `}</style>
     </div>
   );
 };

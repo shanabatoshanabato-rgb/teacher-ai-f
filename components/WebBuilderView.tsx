@@ -82,7 +82,6 @@ const WebBuilderView: React.FC = () => {
 
   return (
     <div className="max-w-[1800px] mx-auto py-10 px-4 space-y-10 animate-in fade-in duration-700">
-      {/* Dynamic Header */}
       <div className={`flex flex-col md:flex-row items-center justify-between gap-8 border-b border-white/5 pb-12 ${isAr ? 'md:flex-row-reverse' : ''}`}>
         <div className={`flex items-center gap-6 ${isAr ? 'flex-row-reverse text-right' : ''}`}>
           <div className="w-24 h-24 bg-indigo-600/10 rounded-[3rem] flex items-center justify-center border border-indigo-500/30 shadow-2xl relative">
@@ -94,7 +93,7 @@ const WebBuilderView: React.FC = () => {
                 {isAr ? 'معماري الويب' : 'Web Architect.'}
             </h1>
             <p className="text-indigo-500 font-black uppercase tracking-[0.4em] text-[10px] mt-2">
-                {isAr ? 'نظام البناء السيادي الذكي' : 'SOVEREIGN SMART BUILD SYSTEM'}
+                {isAr ? 'نظام البناء الذكي المتطور' : 'ADVANCED SMART BUILD SYSTEM'}
             </p>
           </div>
         </div>
@@ -113,7 +112,6 @@ const WebBuilderView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 min-h-[750px]">
-        {/* Left: Control Panel */}
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-[#111827]/40 border border-white/5 rounded-[3rem] p-8 backdrop-blur-xl shadow-2xl space-y-8 h-full flex flex-col">
             <div className="flex-1 space-y-8">
@@ -190,7 +188,6 @@ const WebBuilderView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Preview / Code Editor */}
         <div className="lg:col-span-8 space-y-6">
           <div className="bg-[#050505] border border-white/10 rounded-[4rem] overflow-hidden shadow-2xl h-full flex flex-col relative">
             <div className="bg-[#111827]/80 p-6 border-b border-white/5 flex items-center justify-between">
@@ -245,7 +242,6 @@ const WebBuilderView: React.FC = () => {
                )}
             </div>
 
-            {/* Status Footer */}
             <div className="bg-[#111827] px-8 py-4 border-t border-white/5 flex items-center justify-between">
                <div className="flex items-center gap-6 opacity-40">
                   <div className="flex items-center gap-2">

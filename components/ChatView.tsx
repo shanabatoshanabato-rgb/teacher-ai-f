@@ -96,6 +96,9 @@ const ChatView: React.FC = () => {
       timestamp: Date.now(),
     };
 
+    // تجهيز التاريخ قبل إرسال الرسالة الجديدة لتضمينه في الطلب
+    const currentHistory = messages.map(m => ({ role: m.role, content: m.content }));
+
     setSessions(prev => prev.map(s => 
       s.id === currentSessionId 
         ? { ...s, messages: [...s.messages, userMsg], title: s.messages.length === 0 ? input.slice(0, 30) : s.title }
@@ -109,7 +112,18 @@ const ChatView: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      const response = await runPuterAgent(currentInput, currentImg || undefined, undefined, 'ar', true);
+      // إرسال التاريخ مع الرسالة الجديدة لضمان الربط
+      const response = await runPuterAgent(
+        currentInput, 
+        currentImg || undefined, 
+        undefined, 
+        'ar', 
+        true, 
+        undefined, 
+        undefined, 
+        currentHistory
+      );
+      
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

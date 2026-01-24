@@ -14,7 +14,6 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-12 animate-in fade-in duration-700">
-      {/* Header Section */}
       <div className={`bg-[#111827]/40 border border-white/10 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl flex flex-col md:flex-row justify-between items-center shadow-2xl gap-8 ${isAr ? 'md:flex-row-reverse' : ''}`}>
         <div className={`flex items-center gap-6 ${isAr ? 'flex-row-reverse text-right' : ''}`}>
           <div className="p-6 bg-indigo-600/20 rounded-3xl border border-indigo-500/30">
@@ -22,7 +21,7 @@ const SettingsView: React.FC = () => {
           </div>
           <div>
             <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase leading-none">
-                {isAr ? 'السيادة التقنية' : 'TECH SOVEREIGNTY'}
+                {isAr ? 'الاحترافية التعليمية' : 'TECH EXCELLENCE'}
             </h2>
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.4em] mt-3">
                 {isAr ? 'إدارة الذكاء التعليمي المتطور' : 'ADVANCED INTELLIGENCE MANAGEMENT'}
@@ -46,7 +45,6 @@ const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main About Content */}
       <div className="grid grid-cols-1 gap-12">
         <div className="bg-[#050505] border border-white/5 rounded-[4rem] p-10 md:p-20 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600/5 via-transparent to-emerald-600/5 -z-10"></div>
@@ -63,13 +61,12 @@ const SettingsView: React.FC = () => {
                 </h3>
                 <p className="max-w-3xl text-slate-400 text-lg md:text-xl font-medium leading-relaxed">
                    {isAr 
-                    ? 'نحن هنا لإعادة تعريف التجربة التعليمية في دولة الإمارات العربية المتحدة. منصة Teacher AI UAE ليست مجرد أداة ذكاء اصطناعي، بل هي رفيق تعليمي سيادي يلتزم بأعلى معايير الجودة الأكاديمية والخصوصية الرقمية.' 
-                    : 'We are here to redefine the educational experience in the UAE. Teacher AI UAE is more than just an AI tool; it is a sovereign educational companion committed to the highest standards of academic quality and digital privacy.'}
+                    ? 'نحن هنا لإعادة تعريف التجربة التعليمية في دولة الإمارات العربية المتحدة. منصة Teacher AI UAE ليست مجرد أداة ذكاء اصطناعي، بل هي رفيق تعليمي متطور يلتزم بأعلى معايير الجودة الأكاديمية والخصوصية الرقمية.' 
+                    : 'We are here to redefine the educational experience in the UAE. Teacher AI UAE is more than just an AI tool; it is an advanced educational companion committed to the highest standards of academic quality and digital privacy.'}
                 </p>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Feature 1 */}
                 <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem] space-y-6 hover:bg-white/[0.07] transition-all group">
                    <div className={`p-4 bg-emerald-600/10 rounded-2xl w-fit group-hover:scale-110 transition-transform ${isAr ? 'mr-auto ml-0 md:mr-0' : ''}`}>
                       <ShieldCheck className="w-8 h-8 text-emerald-400" />
@@ -80,18 +77,16 @@ const SettingsView: React.FC = () => {
                    </p>
                 </div>
 
-                {/* Feature 2 */}
                 <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem] space-y-6 hover:bg-white/[0.07] transition-all group">
                    <div className={`p-4 bg-indigo-600/10 rounded-2xl w-fit group-hover:scale-110 transition-transform ${isAr ? 'mr-auto ml-0 md:mr-0' : ''}`}>
                       <Server className="w-8 h-8 text-indigo-400" />
                    </div>
-                   <h4 className="text-white font-black text-xl uppercase tracking-tight">{isAr ? 'سيادة معلوماتية' : 'INFO SOVEREIGNTY'}</h4>
+                   <h4 className="text-white font-black text-xl uppercase tracking-tight">{isAr ? 'ذكاء معلوماتي' : 'SMART INTELLIGENCE'}</h4>
                    <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                      {isAr ? 'نعتمد حصرياً على نواة ذكاء سيادية لضمان خصوصية بياناتك ومعالجتها بأمان تام بعيداً عن المنصات التجارية المفتوحة.' : 'Exclusively built on a sovereign AI core to ensure your data remains private and processed securely away from open commercial platforms.'}
+                      {isAr ? 'نعتمد حصرياً على نواة ذكاء متطورة لضمان خصوصية بياناتك ومعالجتها بأمان تام بعيداً عن المنصات التجارية المفتوحة.' : 'Exclusively built on a smart AI core to ensure your data remains private and processed securely away from open commercial platforms.'}
                    </p>
                 </div>
 
-                {/* Feature 3 */}
                 <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem] space-y-6 hover:bg-white/[0.07] transition-all group">
                    <div className={`p-4 bg-red-600/10 rounded-2xl w-fit group-hover:scale-110 transition-transform ${isAr ? 'mr-auto ml-0 md:mr-0' : ''}`}>
                       <Lock className="w-8 h-8 text-red-400" />
@@ -103,14 +98,13 @@ const SettingsView: React.FC = () => {
                 </div>
              </div>
 
-             {/* Services Highlight */}
              <div className="pt-12 border-t border-white/5">
                 <div className={`flex flex-col gap-10 ${isAr ? 'items-end' : 'items-start'}`}>
                    <h4 className="text-2xl font-black text-white uppercase tracking-tighter">{isAr ? 'أنظمتنا الأساسية' : 'OUR CORE SYSTEMS'}</h4>
                    <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                       {[
                         { id: 'chat', icon: Search, label: isAr ? 'البحث الذكي' : 'SMART SEARCH' },
-                        { id: 'voice', icon: Zap, label: isAr ? 'التعليم الصوتي' : 'VOICE MODE' },
+                        { id: 'voice', icon: Zap, label: isAr ? 'الوضع الصوتي' : 'VOICE MODE' },
                         { id: 'homework', icon: BookOpen, label: isAr ? 'مساعد الواجبات' : 'HOMEWORK AI' },
                         { id: 'writer', icon: PenTool, label: isAr ? 'استوديو الكتابة' : 'WRITER STUDIO' },
                         { id: 'islamic', icon: Library, label: isAr ? 'المكتبة الإسلامية' : 'ISLAMIC HUB' },
@@ -124,12 +118,11 @@ const SettingsView: React.FC = () => {
                 </div>
              </div>
 
-             {/* Footer Info */}
              <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className={`flex items-center gap-4 opacity-50 ${isAr ? 'flex-row-reverse' : ''}`}>
                    <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-white">{isAr ? 'نظام معتمد سيادياً' : 'SOVEREIGN CERTIFIED'}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white">{isAr ? 'نظام تعليمي معتمد' : 'CERTIFIED SYSTEM'}</span>
                    </div>
                    <div className="w-1 h-1 bg-white/20 rounded-full"></div>
                    <div className="flex items-center gap-2">

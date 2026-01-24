@@ -15,8 +15,8 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const isAr = document.documentElement.lang === 'ar';
 
   const navItems = [
-    { id: 'chat', label: isAr ? 'المحاور الشامل' : 'Master Chat', icon: MessageSquare },
-    { id: 'voice', label: isAr ? 'التعليم الصوتي' : 'Voice Mode', icon: Mic },
+    { id: 'chat', label: isAr ? 'المحادثة' : 'Chat', icon: MessageSquare },
+    { id: 'voice', label: isAr ? 'الوضع الصوتي' : 'Voice Mode', icon: Mic },
     { id: 'teacher-uae', label: isAr ? 'منهاج الإمارات' : 'UAE Teacher', icon: ShieldCheck },
     { id: 'homework', label: isAr ? 'مساعد الواجبات' : 'Homework AI', icon: BookOpen },
     { id: 'islamic-hub', label: isAr ? 'المكتبة الإسلامية' : 'Islamic Hub', icon: Library },

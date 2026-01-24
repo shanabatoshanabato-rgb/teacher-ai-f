@@ -1,12 +1,10 @@
 
 /**
- * 🧠 TEACHER AI - UNIFIED PUTER INTELLIGENCE SERVICE
- * Orchestrates exclusively via Puter Sovereign Core.
+ * 🧠 TEACHER AI - UNIFIED MASTER INTELLIGENCE SERVICE
+ * Orchestrates exclusively via Puter Smart Core.
+ * No external API keys or third-party configurations are used.
  */
 import * as Puter from './puterCore';
-
-const ISLAMIC_SYSTEM = "أجب كعالم إسلامي بمراجع دقيقة. استخدم نبرة محترمة.";
-const HOMEWORK_SYSTEM = "أنت معلم محترف. حل المسألة واشرح الخطوات بوضوح.";
 
 export const runChatAgent = (prompt: string, image?: string, onPhase?: any) => {
   return Puter.runPuterAgent(prompt, image, onPhase);

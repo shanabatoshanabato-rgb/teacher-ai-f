@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Check, FileText, Languages, Sparkles, Copy, Trash2, Loader2, PenTool, ChevronRight, BookOpen, AlignLeft, Quote
@@ -31,12 +32,11 @@ const WriterView: React.FC = () => {
     setResults(prev => ({ ...prev, [mode]: null }));
 
     try {
-      // إجبار اللغة العربية لنمط الإعراب ومنع أي تداخل إنجليزي
       const lang = mode === 'arabic' ? 'ar' : responseLang;
       const res = await puterTextLogic(mode, currentInput, lang);
       setResults(prev => ({ ...prev, [mode]: res }));
     } catch (e) {
-      setResults(prev => ({ ...prev, [mode]: isAr ? "خطأ في المعالجة السيادية." : "Error in processing." }));
+      setResults(prev => ({ ...prev, [mode]: isAr ? "خطأ في المعالجة الذكية." : "Error in smart processing." }));
     } finally {
       setLoading(prev => ({ ...prev, [mode]: false }));
     }
@@ -56,13 +56,12 @@ const WriterView: React.FC = () => {
           {isAr ? 'استوديو الكتابة' : 'Writer Studio.'}
         </h1>
         <p className="text-indigo-500 font-bold uppercase tracking-[0.4em] text-[10px]">
-          {isAr ? 'مركز معالجة النصوص السيادي المتطور' : 'ADVANCED SOVEREIGN TEXT PROCESSING'}
+          {isAr ? 'مركز معالجة النصوص الذكي المتطور' : 'ADVANCED SMART TEXT PROCESSING'}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-4 space-y-6">
-          {/* Language Toggle for Tools (Disabled for Grammar/Arabic) */}
           <div className="bg-[#111827]/40 border border-white/5 p-8 rounded-[2.5rem] space-y-4 shadow-xl backdrop-blur-md">
              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">{isAr ? 'لغة الرد المطلوبة' : 'RESPONSE LANGUAGE'}</h3>
              <div className="grid grid-cols-2 gap-3">

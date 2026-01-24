@@ -76,7 +76,7 @@ const HomeworkView: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) { 
         setError(isAr ? "حجم الصورة كبير جداً، يرجى اختيار صورة أصغر." : "Image size too large, please select a smaller one.");
         return;
       }
@@ -94,7 +94,7 @@ const HomeworkView: React.FC = () => {
           {isAr ? 'مساعد الواجبات' : 'Homework AI.'}
         </h1>
         <p className="text-indigo-500 text-[10px] md:text-xs font-black uppercase tracking-[0.4em]">
-          {isAr ? 'استخراج النصوص من الصور وحل المسائل عبر النظام السيادي المتطور' : 'EXTRACT TEXT & SOLVE PROBLEMS VIA SOVEREIGN AI CORE'}
+          {isAr ? 'استخراج النصوص من الصور وحل المسائل عبر النظام الذكي المتطور' : 'EXTRACT TEXT & SOLVE PROBLEMS VIA SMART AI CORE'}
         </p>
       </div>
 
@@ -185,7 +185,7 @@ const HomeworkView: React.FC = () => {
                         phase === 'thinking' ? (isAr ? 'جاري تحليل المسألة منطقياً...' : 'ANALYZING MATH LOGIC') : 
                         (isAr ? 'جاري صياغة الحل النهائي...' : 'GENERATING FINAL SOLUTION')}
                      </p>
-                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">{isAr ? 'عبر النظام السيادي المتطور' : 'POWERED BY SOVEREIGN AI CORE'}</p>
+                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">{isAr ? 'عبر النظام الذكي المتطور' : 'POWERED BY SMART AI CORE'}</p>
                    </div>
                 </div>
               )}
